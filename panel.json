@@ -1,18 +1,18 @@
 {
   "status": {
     "tendencia": "Alta forte",
-    "forca": 90,
-    "confianca": 85
+    "forca": 75,
+    "confianca": 80
   },
-  "estrutura": "Tendência de alta com candles de alta e suporte em EMAs ascendentes",
-  "padroes": "Continuação clara sem padrões de reversão visíveis",
-  "reversao": "Não identificada, mercado em continuação",
-  "forecast": "Manter posição comprada visando novas máximas no curto prazo",
-  "memoria": "Últimos candles confirmam força compradora e alta consistente",
-  "horario": "Momento favorável de mercado com volume adequado",
-  "micro": "Continuação provável — siga",
-  "classe": "Ativo volátil com alta liquidez e tendência definida",
-  "piloto": "Compra agressiva com gestão de risco padrão",
-  "execucao": "Entrada imediata com stop abaixo das EMAs e ATR para proteção",
-  "justificativa": "Alto RSI (76) indica força, EMAs ascendentes confirmam tendência, volume e fluxo dominante positivo, indicador FA_strength no máximo, ausência de sinais de reversão"
+  "estrutura": "Alta contínua com pequeno recuo no candle atual",
+  "padroes": "Sem padrões de reversão claros, candle de indecisão leve",
+  "reversao": "Não detectada",
+  "forecast": "Continuação da tendência de alta, possível novos testes de máximas",
+  "memoria": "Tendência de compra consolidada, EMA rápida acima da EMA lenta, RSI próximo a sobrevenda indicando força para alta",
+  "horario": "Período de forte compra conforme timestamp, sem sinais de exaustão",
+  "micro": "FORTE BUY — continuação clara, confirmado por VWAP+ e RSI abaixo de 35",
+  "classe": "Ativo com tendência de alta forte, volume baixo mas suficiente para sustentação",
+  "piloto": "AARON 8 ULTRA",
+  "execucao": "Manter posição comprada ou iniciar compra moderada com stop de proteção próximo à mínima recente",
+  "justificativa": "EMA rápida acima da lenta indica compra, RSI em 31 suporta continuação de alta, fa_strength alto (75) reforça força do movimento, ausência de reversão e micro contexto indicam continuidade da alta."
 }
