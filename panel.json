@@ -1,18 +1,18 @@
 {
   "status": {
-    "tendencia": "Alta moderada",
+    "tendencia": "Compra moderada",
     "forca": 55,
     "confianca": 70
   },
-  "estrutura": "Tendência de alta sustentada com candles próximos às máximas recentes e volume moderado.",
-  "padroes": "Sem padrões de reversão evidentes, continuação da tendência de alta.",
-  "reversao": "Não detectada",
-  "forecast": "Continuação da alta com suporte nas EMAs e indicador RSI favorável.",
-  "memoria": "Últimos candles indicam força compradora consistente, sem sinais de fraqueza.",
-  "horario": "Momento favorável para compra, alinhado com micro contexto e indicadores.",
-  "micro": "Continuação provável — siga",
-  "classe": "Compra",
+  "estrutura": "Consolidação leve acima das médias móveis com volume moderado",
+  "padroes": "Nenhum padrão gráfico relevante detectado",
+  "reversao": "Não identificada",
+  "forecast": "Continuação da tendência de alta moderada com possível aumento gradual",
+  "memoria": "Tendência recente de alta com suporte nos EMAs e RSI em zona saudável",
+  "horario": "Momento de mercado estável sem volatilidade extrema",
+  "micro": "Contexto micro neutro, sem sinais fortes de reversão",
+  "classe": "Trading de tendência",
   "piloto": "AARON 8 ULTRA",
-  "execucao": "Comprar próximo ao preço atual, manter stop abaixo do suporte da EMA lenta.",
-  "justificativa": "O preço está acima da EMA lenta (85602) e próximo à EMA rápida (85703), RSI em 61 indica força suficiente, fa_strength moderada e ausência de reversão suportam a continuidade da alta."
+  "execucao": "Manter posição comprada com ajuste em stops próximos",
+  "justificativa": "Preço fechou próximo da média móvel rápida, RSI indica força moderada, volume e ATR sugerem estabilidade, sem sinais de reversão imediata. Mensagem do advisor corrobora compra contínua."
 }
