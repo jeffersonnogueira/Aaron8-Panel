@@ -1,18 +1,18 @@
 {
   "status": {
-    "tendencia": "Alta moderada",
+    "tendencia": "Compra moderada",
     "forca": 60,
     "confianca": 70
   },
-  "estrutura": "Tendência de alta com candles de pequena variação e volume moderado",
-  "padroes": "Nenhum padrão definido, candle de corpo pequeno indicando indecisão leve",
-  "reversao": "Sem sinais de reversão no momento",
-  "forecast": "Continuação da tendência de alta aguardada com confirmação dos indicadores",
-  "memoria": "Últimos candles indicam suporte em torno da EMA lenta e candles neutros",
-  "horario": "Momento neutro com volume e movimento moderados, sem volatilidade explosiva",
-  "micro": "Contexto micro em pausa ou lateralização leve, sem definição clara",
-  "classe": "Ativo digital volátil com suporte técnico em médias móveis e momentum favorável",
-  "piloto": "AARON 8 ULTRA",
-  "execucao": "Comprar com posição moderada, seguir gestão de risco pela ATR atual",
-  "justificativa": "Buy trend confirmada por EMA fast acima da EMA slow, RSI sincronizado em 60, ausência de reversão, e mensagem do advisor indicando BUY com VWAP e RSI favoráveis"
+  "estrutura": "Lateral com leve viés altista",
+  "padroes": "Nenhum padrão de reversão evidente",
+  "reversao": "Não identificada",
+  "forecast": "Continuação da tendência de alta moderada no curto prazo",
+  "memoria": "Últimos candles mostram suportes no preço atual, sem grandes quedas",
+  "horario": "Momento de baixa volatilidade, típico do final do pregão",
+  "micro": "Consolidação com ligeira pressão compradora",
+  "classe": "Setup de entrada moderada no mercado de tendência",
+  "piloto": "Utilizar compra parcial com stop ajustado próximo à mínima do candle",
+  "execucao": "Entrada imediata com acompanhamento do indicador RSI e VWAP para ajustes",
+  "justificativa": "Preço acima da EMA lenta, RSI em 59 indicando espaço para alta, força de tendência moderada em 45 no indicador FA, volume presente; portanto, cenário favorável à continuidade da alta com controle de risco."
 }
