@@ -1,18 +1,18 @@
 {
   "status": {
-    "tendencia": "Alta forte",
-    "forca": 75,
-    "confianca": 80
+    "tendencia": "Alta moderada",
+    "forca": 55,
+    "confianca": 70
   },
-  "estrutura": "Alta contínua com pequeno recuo no candle atual",
-  "padroes": "Sem padrões de reversão claros, candle de indecisão leve",
+  "estrutura": "Tendência de alta sustentada com candles próximos às máximas recentes e volume moderado.",
+  "padroes": "Sem padrões de reversão evidentes, continuação da tendência de alta.",
   "reversao": "Não detectada",
-  "forecast": "Continuação da tendência de alta, possível novos testes de máximas",
-  "memoria": "Tendência de compra consolidada, EMA rápida acima da EMA lenta, RSI próximo a sobrevenda indicando força para alta",
-  "horario": "Período de forte compra conforme timestamp, sem sinais de exaustão",
-  "micro": "FORTE BUY — continuação clara, confirmado por VWAP+ e RSI abaixo de 35",
-  "classe": "Ativo com tendência de alta forte, volume baixo mas suficiente para sustentação",
+  "forecast": "Continuação da alta com suporte nas EMAs e indicador RSI favorável.",
+  "memoria": "Últimos candles indicam força compradora consistente, sem sinais de fraqueza.",
+  "horario": "Momento favorável para compra, alinhado com micro contexto e indicadores.",
+  "micro": "Continuação provável — siga",
+  "classe": "Compra",
   "piloto": "AARON 8 ULTRA",
-  "execucao": "Manter posição comprada ou iniciar compra moderada com stop de proteção próximo à mínima recente",
-  "justificativa": "EMA rápida acima da lenta indica compra, RSI em 31 suporta continuação de alta, fa_strength alto (75) reforça força do movimento, ausência de reversão e micro contexto indicam continuidade da alta."
+  "execucao": "Comprar próximo ao preço atual, manter stop abaixo do suporte da EMA lenta.",
+  "justificativa": "O preço está acima da EMA lenta (85602) e próximo à EMA rápida (85703), RSI em 61 indica força suficiente, fa_strength moderada e ausência de reversão suportam a continuidade da alta."
 }
