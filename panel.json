@@ -1,4 +1,18 @@
 {
-  "status": "AARON 8 ULTRA - Painel iniciado",
-  "mensagem": "Aguardando atualização do n8n..."
+  "status": {
+    "tendencia": "Alta forte",
+    "forca": 85,
+    "confianca": 90
+  },
+  "estrutura": "Continuação de alta com candles de alta confirmando suporte nos EMAs",
+  "padroes": "Sem padrão de reversão identificado, padrão de continuidade",
+  "reversao": "Não",
+  "forecast": "Continuação do movimento de alta com possível subida gradual",
+  "memoria": "Últimos candles mostram pressão compradora consistente acima dos EMAs",
+  "horario": "Momento de mercado ativo com volume adequado para movimento de alta",
+  "micro": "Forte buy — continuação",
+  "classe": "Mercado de alta com fluxo comprador dominante",
+  "piloto": "BUY",
+  "execucao": "Manter posição comprada, buscar entrada em retrações",
+  "justificativa": "RSI elevado no 75 indica força compradora, EMAs alinhados para alta, ATR baixo sugere baixa volatilidade, indicador de força máxima 100 confirma o momento favorável para compra."
 }
