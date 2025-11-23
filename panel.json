@@ -1,18 +1,18 @@
 {
   "status": {
-    "tendencia": "Compra moderada",
-    "forca": 70,
-    "confianca": 75
+    "tendencia": "Alta forte",
+    "forca": 75,
+    "confianca": 80
   },
-  "estrutura": "Tendência de alta com candles próximos e volume contido",
-  "padroes": "Sem padrões de reversão visíveis, estrutura indica continuação",
-  "reversao": "Não identificada",
-  "forecast": "Possível continuação de alta com suporte próximo às EMAs",
-  "memoria": "Últimos candles mostram força mantendo preço acima das EMAs",
-  "horario": "Horário avançado do dia com fluxo estável",
-  "micro": "FORTE BUY — continuação confirmada pelo volume e indicadores",
-  "classe": "Compra",
-  "piloto": "AARON 8 ULTRA",
-  "execucao": "Manter posição comprada com stop próximo ao suporte EMA",
-  "justificativa": "Apesar do RSI estar em 44 indicando leve ajuste, a força do mercado é 100 e a EMA rápida está acima da EMA lenta; o candle mostra leve correção mas dentro da continuidade do movimento de alta, confirmado pelo estado de mercado 'BUY' e ausência de reversão."
+  "estrutura": "Continuação de alta com candle de alta forte e volume consistente",
+  "padroes": "Fechamento no topo do candle, padrão de rompimento",
+  "reversao": "Negativa, nenhuma indicação de reversão detectada",
+  "forecast": "Continuação do movimento de subida, alvo mantendo níveis acima da EMA lenta",
+  "memoria": "Contexto de alta recente com suporte nas EMAs e RSI elevado",
+  "horario": "Período de alta liquidez e confirmação do padrão de compra",
+  "micro": "Continuação provável — siga",
+  "classe": "Ativo de alta volatilidade com forte momentum comprador",
+  "piloto": "Siga a tendência com controle de risco, entrada alinhada com VWAP e indicadores de força",
+  "execucao": "Comprar em rompimento com stop abaixo da EMA lenta e ATR para gerenciamento",
+  "justificativa": "Candle fechado em alta com volume razoável, RSI alto indicando força, EMA rápida acima da lenta, confirmação de tendência de compra no mercado e ausência de sinais de reversão."
 }
