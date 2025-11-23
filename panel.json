@@ -1,18 +1,18 @@
 {
   "status": {
     "tendencia": "Alta forte",
-    "forca": 75,
-    "confianca": 80
+    "forca": 90,
+    "confianca": 85
   },
-  "estrutura": "Continuação de alta com candle de alta forte e volume consistente",
-  "padroes": "Fechamento no topo do candle, padrão de rompimento",
-  "reversao": "Negativa, nenhuma indicação de reversão detectada",
-  "forecast": "Continuação do movimento de subida, alvo mantendo níveis acima da EMA lenta",
-  "memoria": "Contexto de alta recente com suporte nas EMAs e RSI elevado",
-  "horario": "Período de alta liquidez e confirmação do padrão de compra",
-  "micro": "Continuação provável — siga",
-  "classe": "Ativo de alta volatilidade com forte momentum comprador",
-  "piloto": "Siga a tendência com controle de risco, entrada alinhada com VWAP e indicadores de força",
-  "execucao": "Comprar em rompimento com stop abaixo da EMA lenta e ATR para gerenciamento",
-  "justificativa": "Candle fechado em alta com volume razoável, RSI alto indicando força, EMA rápida acima da lenta, confirmação de tendência de compra no mercado e ausência de sinais de reversão."
+  "estrutura": "Tendência de alta com confirmação de pullback e fechamento próximo da máxima do candle",
+  "padroes": "Candlestick de alta com volume consistente, sem padrão de reversão identificado",
+  "reversao": "Não",
+  "forecast": "Continuação da alta no curto prazo, com suporte nos níveis EMA e VWAP",
+  "memoria": "O fluxo dominante favorece compradores com múltiplos indicadores alinhados",
+  "horario": "Mercado ativo com alta volatilidade controlada (ATR moderado)",
+  "micro": "Pullback confirmado dentro da tendência de alta, indicador RSI sobrecomprado mas saudável",
+  "classe": "Candle de alta padrão, sem sinal contraditório",
+  "piloto": "BUY forte recomendado com monitoramento contínuo do RSI e volume",
+  "execucao": "Entrar em posição de compra com stop próximo ao suporte EMA_slow para controle de risco",
+  "justificativa": "A forte tendência de compra é sustentada pelo fechamento no topo do candle, RSI alto mas não extremo, EMA_slow abaixo do preço e ausência de sinais de reversão, indicando continuidade da alta."
 }
