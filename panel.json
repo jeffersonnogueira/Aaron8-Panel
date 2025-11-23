@@ -4,15 +4,15 @@
     "forca": 90,
     "confianca": 85
   },
-  "estrutura": "Pullback confirmado com vela de alta e volume consistente",
-  "padroes": "Continuação de alta validada pelo cruzamento das EMAs e RSI elevado",
-  "reversao": "Não identificada",
-  "forecast": "Continuação do movimento de alta a curto prazo",
-  "memoria": "Fluxo dominante comprador e confirmação pelo VWAP positivo",
-  "horario": "Momento de alta liquidez com volume acima da média recente",
-  "micro": "Pullback confirmado — BUY forte",
-  "classe": "Ativo volátil com sinais técnicos robustos de alta",
-  "piloto": "Execução de compra recomendada com gestão de risco ajustada",
-  "execucao": "Ordem de compra com stop abaixo do pullback para proteção",
-  "justificativa": "EMAs rápidas acima das lentas, RSI em sobrecompra mas sem reversão, alta no volume e confirmação do fluxo comprador indicam forte tendência de alta com alta confiabilidade e força"
+  "estrutura": "Tendência de alta com candles de alta e suporte em EMAs ascendentes",
+  "padroes": "Continuação clara sem padrões de reversão visíveis",
+  "reversao": "Não identificada, mercado em continuação",
+  "forecast": "Manter posição comprada visando novas máximas no curto prazo",
+  "memoria": "Últimos candles confirmam força compradora e alta consistente",
+  "horario": "Momento favorável de mercado com volume adequado",
+  "micro": "Continuação provável — siga",
+  "classe": "Ativo volátil com alta liquidez e tendência definida",
+  "piloto": "Compra agressiva com gestão de risco padrão",
+  "execucao": "Entrada imediata com stop abaixo das EMAs e ATR para proteção",
+  "justificativa": "Alto RSI (76) indica força, EMAs ascendentes confirmam tendência, volume e fluxo dominante positivo, indicador FA_strength no máximo, ausência de sinais de reversão"
 }
