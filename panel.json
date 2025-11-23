@@ -1,18 +1,18 @@
 {
   "status": {
-    "tendencia": "Compra moderada",
-    "forca": 65,
+    "tendencia": "Alta moderada",
+    "forca": 60,
     "confianca": 70
   },
-  "estrutura": "Alta leve com candles de pouca variação e volume moderado",
-  "padroes": "Nenhum padrão definido, candle de corpo pequeno indicando indecisão moderada",
-  "reversao": "Não detectada",
-  "forecast": "Continuação da alta moderada com potencial de fortalecimento se romper resistência imediata",
-  "memoria": "Contexto recente sugere consolidação com alta gradual, indicadores EMA e RSI suportam compra",
-  "horario": "Momento favorável para entradas, considerando fluxo e indicadores alinhados",
-  "micro": "Micro tendência de alta contida, sem sinais claros de reversão imediata",
-  "classe": "Ativo volátil, adequado para trade de curto prazo com monitoramento constante",
-  "piloto": "AARON 8 ULTRA v1.0",
-  "execucao": "Recomenda manter posição de compra com stops ajustados próximo ao suporte EMA",
-  "justificativa": "EMA rápida acima da lenta indica força de compra, RSI em 43 sugere espaço para subida, ATR moderado indica volatilidade controlada, mercado em tendência de compra sem sinais de reversão."
+  "estrutura": "Tendência de alta com candles de pequena variação e volume moderado",
+  "padroes": "Nenhum padrão definido, candle de corpo pequeno indicando indecisão leve",
+  "reversao": "Sem sinais de reversão no momento",
+  "forecast": "Continuação da tendência de alta aguardada com confirmação dos indicadores",
+  "memoria": "Últimos candles indicam suporte em torno da EMA lenta e candles neutros",
+  "horario": "Momento neutro com volume e movimento moderados, sem volatilidade explosiva",
+  "micro": "Contexto micro em pausa ou lateralização leve, sem definição clara",
+  "classe": "Ativo digital volátil com suporte técnico em médias móveis e momentum favorável",
+  "piloto": "AARON 8 ULTRA",
+  "execucao": "Comprar com posição moderada, seguir gestão de risco pela ATR atual",
+  "justificativa": "Buy trend confirmada por EMA fast acima da EMA slow, RSI sincronizado em 60, ausência de reversão, e mensagem do advisor indicando BUY com VWAP e RSI favoráveis"
 }
