@@ -5,647 +5,82 @@
   <title>AARON 9 - Painel em Tempo Real</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root {
-      --bg: #020617;
-      --bg-elevated: #020617;
-      --card: #020617;
-      --card-border: #1e293b;
-      --accent: #22d3ee;
-      --accent-soft: rgba(34, 211, 238, 0.15);
-      --danger: #f97373;
-      --text-main: #e5e7eb;
-      --text-soft: #9ca3af;
-      --radius-lg: 18px;
-    }
-
-    * {
-      box-sizing: border-box;
+    body {
       margin: 0;
       padding: 0;
-    }
-
-    body {
+      background: #020617;
+      color: #e5e7eb;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       min-height: 100vh;
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-        "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top left, #0b1120 0%, #000 55%);
-      color: var(--text-main);
       display: flex;
       align-items: stretch;
       justify-content: center;
     }
-
-    .page {
+    #frame-wrapper {
+      flex: 1;
+      max-width: 1600px;
+      margin: 16px;
+    }
+    #aaron-frame {
       width: 100%;
-      max-width: 1320px;
-      padding: 24px;
+      height: 100vh;
+      border: none;
+      border-radius: 18px;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.9);
+      background: #020617;
     }
-
-    header {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin-bottom: 18px;
-    }
-
-    .brand {
-      font-size: 16px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--text-soft);
-    }
-
-    .title-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .title-main {
-      font-size: 26px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    .title-main span {
-      color: var(--accent);
-    }
-
-    .title-sub {
-      font-size: 13px;
-      color: var(--text-soft);
-    }
-
     .status-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 10px;
-      font-size: 13px;
-      color: var(--text-soft);
-    }
-
-    .badge {
-      padding: 3px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--card-border);
-      background: linear-gradient(120deg, #020617, #020617, #020617);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .badge-label {
-      text-transform: uppercase;
-      font-size: 10px;
-      letter-spacing: 0.14em;
-      color: var(--text-soft);
-    }
-
-    .badge-value {
-      font-weight: 600;
-      color: var(--accent);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 2.2fr 1.8fr;
-      gap: 16px;
-    }
-
-    @media (max-width: 980px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .column {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .card {
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--card-border);
-      background:
-        radial-gradient(circle at top left, rgba(34, 211, 238, 0.09), transparent 50%),
-        linear-gradient(135deg, #020617, #020617);
-      padding: 14px 14px 16px;
-      box-shadow:
-        0 18px 45px rgba(15, 23, 42, 0.8),
-        0 0 0 1px rgba(15, 23, 42, 0.8);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at top left, rgba(34, 211, 238, 0.18), transparent 55%);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 200ms ease-out;
-    }
-
-    .card:hover::before {
-      opacity: 1;
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      align-items: baseline;
-      margin-bottom: 4px;
-    }
-
-    .card-title {
-      font-size: 13px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--text-soft);
-    }
-
-    .card-pill {
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      color: var(--text-soft);
-    }
-
-    .card-main-line {
-      font-size: 15px;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-
-    .card-main-line span {
-      color: var(--accent);
-    }
-
-    .card-sub {
-      font-size: 12px;
-      color: var(--text-soft);
-      margin-bottom: 8px;
-    }
-
-    .kv-list {
-      list-style: none;
-      margin-top: 4px;
-      font-size: 12px;
-    }
-
-    .kv-item {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      padding: 3px 0;
-      border-bottom: 1px dashed rgba(30, 64, 175, 0.45);
-    }
-
-    .kv-item:last-child {
-      border-bottom: none;
-    }
-
-    .kv-key {
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      font-size: 10px;
-      color: var(--text-soft);
-      flex: 0 0 auto;
-    }
-
-    .kv-value {
-      font-weight: 500;
-      text-align: right;
-      flex: 1 1 auto;
-    }
-
-    .thermo-row {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-top: 6px;
-    }
-
-    .thermo-label-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: var(--text-soft);
-    }
-
-    .thermo-bar {
-      height: 8px;
-      border-radius: 999px;
-      background: radial-gradient(circle at left, rgba(34, 197, 94, 0.45), transparent 55%),
-                  radial-gradient(circle at right, rgba(248, 113, 113, 0.45), transparent 55%),
-                  #020617;
-      border: 1px solid rgba(15, 23, 42, 0.9);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .thermo-fill-favor,
-    .thermo-fill-contra {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-    }
-
-    .thermo-fill-favor {
+      position: fixed;
+      bottom: 8px;
       left: 0;
-      background: linear-gradient(90deg, #22c55e, #a3e635);
-    }
-
-    .thermo-fill-contra {
       right: 0;
-      background: linear-gradient(90deg, #f97373, #fb923c);
-    }
-
-    .footer-info {
-      margin-top: 10px;
-      font-size: 11px;
-      color: var(--text-soft);
       display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      display: inline-block;
-      margin-right: 4px;
-      background: #f97373;
-    }
-
-    .status-dot.ok {
-      background: #22c55e;
+      justify-content: center;
+      font-size: 11px;
+      color: #9ca3af;
+      pointer-events: none;
     }
   </style>
 </head>
 <body>
-  <div class="page">
-    <header>
-      <div class="brand">THE SIX SEATS INVESTMENTS</div>
-      <div class="title-row">
-        <div class="title-main">
-          AARON <span>9</span> · AI ULTRA PANEL
-        </div>
-        <div class="title-sub" id="header-symbol">—</div>
-      </div>
-
-      <div class="status-bar">
-        <div class="badge">
-          <div class="badge-label">TIMEFRAME</div>
-          <div class="badge-value" id="badge-timeframe">—</div>
-        </div>
-        <div class="badge">
-          <div class="badge-label">EDGE</div>
-          <div class="badge-value" id="badge-edge">—</div>
-        </div>
-        <div class="badge">
-          <div class="badge-label">DIREÇÃO</div>
-          <div class="badge-value" id="badge-direction">—</div>
-        </div>
-        <div class="badge">
-          <div class="badge-label">ATUALIZAÇÃO</div>
-          <div class="badge-value" id="badge-updated">aguardando…</div>
-        </div>
-      </div>
-    </header>
-
-    <main class="grid">
-      <!-- COLUNA ESQUERDA -->
-      <div class="column">
-        <!-- EXECUÇÃO -->
-        <section class="card">
-          <div class="card-header">
-            <div class="card-title">COMANDO DE EXECUÇÃO</div>
-            <div class="card-pill" id="exec-pill">—</div>
-          </div>
-          <div class="card-main-line" id="exec-main">Aguardando dados…</div>
-          <div class="card-sub" id="exec-reason">
-            Quando tudo se alinhar, o AARON mostra aqui se é hora de **executar ou esperar**.
-          </div>
-
-          <div class="thermo-row">
-            <div class="thermo-label-row">
-              <span>A favor</span>
-              <span id="thermo-favor-label">0%</span>
-            </div>
-            <div class="thermo-bar">
-              <div class="thermo-fill-favor" id="thermo-favor"></div>
-            </div>
-
-            <div class="thermo-label-row" style="margin-top:4px;">
-              <span>Contra</span>
-              <span id="thermo-contra-label">0%</span>
-            </div>
-            <div class="thermo-bar">
-              <div class="thermo-fill-contra" id="thermo-contra"></div>
-            </div>
-          </div>
-        </section>
-
-        <!-- CHECK DE PULLBACK -->
-        <section class="card">
-          <div class="card-header">
-            <div class="card-title">CHECK DE PULLBACK / RESPIRO</div>
-            <div class="card-pill" id="pullback-pill">—</div>
-          </div>
-          <div class="card-main-line" id="pullback-main">—</div>
-          <div class="card-sub" id="pullback-sub">—</div>
-
-          <ul class="kv-list" id="pullback-list">
-            <!-- preenchido via JS -->
-          </ul>
-        </section>
-
-        <!-- FORECAST CURTO -->
-        <section class="card">
-          <div class="card-header">
-            <div class="card-title">DIREÇÃO PREVISTA (1–3 CANDLES)</div>
-            <div class="card-pill" id="forecast-short-pill">—</div>
-          </div>
-          <div class="card-main-line" id="forecast-short-main">—</div>
-          <div class="card-sub" id="forecast-short-sub">—</div>
-        </section>
-      </div>
-
-      <!-- COLUNA DIREITA -->
-      <div class="column">
-        <!-- FORECAST GERAL DO DIA -->
-        <section class="card">
-          <div class="card-header">
-            <div class="card-title">DIREÇÃO PREVISTA · CONTEXTO DO DIA</div>
-            <div class="card-pill" id="forecast-macro-pill">—</div>
-          </div>
-          <div class="card-main-line" id="forecast-macro-main">—</div>
-          <div class="card-sub" id="forecast-macro-sub">—</div>
-        </section>
-
-        <!-- BLOCOS GENÉRICOS · MOSTRA TODO O JSON -->
-        <section class="card" id="raw-card">
-          <div class="card-header">
-            <div class="card-title">DETALHES BRUTOS DO PAINEL</div>
-            <div class="card-pill">debug · tudo o que o AARON mandou</div>
-          </div>
-          <pre id="raw-json" style="margin-top:6px;font-size:11px;white-space:pre-wrap;max-height:260px;overflow:auto;color:var(--text-soft);"></pre>
-        </section>
-      </div>
-    </main>
-
-    <div class="footer-info">
-      <div>
-        <span class="status-dot" id="status-dot"></span>
-        <span id="status-text">Aguardando primeira atualização…</span>
-      </div>
-      <div id="status-server-time"></div>
-    </div>
+  <div id="frame-wrapper">
+    <iframe id="aaron-frame"></iframe>
+  </div>
+  <div class="status-bar" id="status">
+    Carregando painel do AARON 9...
   </div>
 
   <script>
-    const PANEL_URL = "https://raw.githubusercontent.com/jeffersonnogueira/Aaron8-Panel/main/panel.json";
+    // URL do webhook de VIEW do n8n (o MESMO que você abre no navegador
+    // e vê a IMAGEM 1).
+    const N8N_URL = "https://jjjnogueira.app.n8n.cloud/webhook/aaron9-view";
+    // tempo de atualização (ms)
+    const REFRESH_MS = 15000; // 15 segundos (muda se quiser)
 
-    const $ = (id) => document.getElementById(id);
-
-    function setThermo(el, percent) {
-      if (!el) return;
-      const p = Math.max(0, Math.min(100, Number(percent) || 0));
-      el.style.width = p + "%";
-    }
-
-    function setText(id, value, fallback = "—") {
-      const el = $(id);
-      if (!el) return;
-      el.textContent = value ?? fallback;
-    }
-
-    function handlePanel(panel) {
-      if (!panel || typeof panel !== "object") return;
-
-      const statusObj =
-        typeof panel.status === "object" && panel.status !== null ? panel.status : {};
-
-      // HEADER / STATUS
-      const symbolLabel =
-        (panel.ativo || statusObj.symbol || statusObj.ticker || "")
-          .toString()
-          .toUpperCase() || "—";
-
-      const tfLabel = panel.timeframe || statusObj.timeframe || statusObj.tf || "—";
-
-      const edgeLabel = panel.edge || statusObj.edge || panel.status || "—";
-
-      const dirLabel =
-        panel.direcao_geral || statusObj.direction || statusObj.side || "—";
-
-      setText("header-symbol", symbolLabel);
-      setText("badge-timeframe", tfLabel);
-      setText("badge-edge", edgeLabel);
-      setText("badge-direction", dirLabel);
-
-      // EXECUÇÃO + RISCO
-      const exec = panel.exec || panel.execution || {};
-      const risco = panel.risco || {};
-
-      const canBuy = exec.canBuy ?? exec.executar ?? exec.ok ?? null;
-
-      const execMain =
-        exec.main ||
-        exec.title ||
-        (canBuy === true
-          ? "EXECUTAR COMPRA"
-          : canBuy === false
-          ? "NÃO EXECUTAR · ESPERAR"
-          : "Aguardando dados do AARON 9…");
-
-      const execReason =
-        exec.reason ||
-        exec.comment ||
-        exec.motivo ||
-        risco.modo ||
-        "Quando o fluxo, estrutura e risco alinham, o AARON libera a execução aqui.";
-
-      setText("exec-main", execMain);
-      setText("exec-reason", execReason);
-      setText(
-        "exec-pill",
-        canBuy === true
-          ? "Sinal ativo"
-          : canBuy === false
-          ? "Bloqueado"
-          : "Em observação"
-      );
-
-      const favor = exec.thermoFavor ?? exec.favor ?? risco.score_favor ?? 0;
-      const contra =
-        exec.thermoContra ?? exec.contra ?? risco.score_contra ?? (100 - favor);
-
-      setThermo($("thermo-favor"), favor);
-      setThermo($("thermo-contra"), contra);
-      setText("thermo-favor-label", Math.round(favor) + "%");
-      setText("thermo-contra-label", Math.round(contra) + "%");
-
-      // PULLBACK / RESPIRO (quando você começar a mandar no JSON, ele aparece aqui)
-      const pull = panel.pullback || panel.respiro || {};
-
-      const pullMain =
-        pull.main ||
-        pull.title ||
-        pull.conclusion ||
-        pull.conclusao ||
-        "—";
-
-      const pullSub =
-        pull.comment ||
-        pull.comentario ||
-        pull.desc ||
-        pull.descricao ||
-        "—";
-
-      setText("pullback-main", pullMain);
-      setText("pullback-sub", pullSub);
-
-      const isOnlyPull =
-        pull.isOnlyPullback ?? pull.onlyPullback ?? pull.soPullback ?? null;
-
-      setText(
-        "pullback-pill",
-        isOnlyPull === true
-          ? "Pullback saudável"
-          : isOnlyPull === false
-          ? "Risco de reversão"
-          : "Analisando"
-      );
-
-      const list = $("pullback-list");
-      if (list) {
-        list.innerHTML = "";
-        const fields = [];
-
-        if (pull.trend || pull.tendencia)
-          fields.push(["Tendência", pull.trend || pull.tendencia]);
-        if (pull.structure || pull.estrutura)
-          fields.push(["Estrutura", pull.structure || pull.estrutura]);
-        if (pull.atrMult || pull.atr || pull.atrMultiple)
-          fields.push([
-            "Pullback × ATR",
-            (pull.atrMult || pull.atr || pull.atrMultiple) + "×",
-          ]);
-        if (pull.micro || pull.microstructure)
-          fields.push(["Microestrutura", pull.micro || pull.microstructure]);
-
-        fields.forEach(([k, v]) => {
-          const li = document.createElement("li");
-          li.className = "kv-item";
-
-          const kSpan = document.createElement("span");
-          kSpan.className = "kv-key";
-          kSpan.textContent = k.toUpperCase();
-
-          const vSpan = document.createElement("span");
-          vSpan.className = "kv-value";
-          vSpan.textContent = v ?? "—";
-
-          li.appendChild(kSpan);
-          li.appendChild(vSpan);
-          list.appendChild(li);
-        });
-      }
-
-      // FORECAST CURTO (preparado para quando você mandar forecastShort no JSON)
-      const fShort = panel.forecastShort || panel.forecast_short || {};
-      const fShortMain =
-        fShort.main ||
-        fShort.direction ||
-        fShort.direcao ||
-        fShort.bias ||
-        "—";
-      const fShortSub = fShort.comment || fShort.comentario || "—";
-
-      setText("forecast-short-main", fShortMain);
-      setText("forecast-short-sub", fShortSub);
-      setText(
-        "forecast-short-pill",
-        fShort.horizon || fShort.horizonte || "1–3 candles"
-      );
-
-      // FORECAST MACRO (preparado para quando você mandar forecastMacro)
-      const fMacro = panel.forecastMacro || panel.forecast_macro || {};
-      const fMacroMain =
-        fMacro.main ||
-        fMacro.direction ||
-        fMacro.direcao ||
-        fMacro.bias ||
-        "—";
-      const fMacroSub = fMacro.comment || fMacro.comentario || "—";
-
-      setText("forecast-macro-main", fMacroMain);
-      setText("forecast-macro-sub", fMacroSub);
-      setText(
-        "forecast-macro-pill",
-        fMacro.horizon || fMacro.horizonte || "Contexto do dia"
-      );
-
-      // RAW JSON
-      const rawEl = $("raw-json");
-      if (rawEl) {
-        rawEl.textContent = JSON.stringify(panel, null, 2);
-      }
-    }
-
-    async function fetchPanel() {
+    async function loadPanel() {
+      const statusEl = document.getElementById("status");
       try {
-        const res = await fetch(PANEL_URL + "?t=" + Date.now(), {
-          cache: "no-store",
-        });
+        statusEl.textContent = "Atualizando painel...";
+        const res = await fetch(N8N_URL, { method: "GET" });
         if (!res.ok) throw new Error("HTTP " + res.status);
-        const panel = await res.json();
-        handlePanel(panel);
+        const html = await res.text();
 
-        const dot = $("status-dot");
-        if (dot) dot.classList.add("ok");
+        const frame = document.getElementById("aaron-frame");
+        // coloca o HTML COMPLETO do n8n dentro do iframe
+        frame.srcdoc = html;
 
-        const updated =
-          panel.ultima_atualizacao || panel.serverTime || panel.timestamp;
-
-        if (updated) {
-          setText("badge-updated", updated);
-          setText("status-server-time", "Server / painel: " + updated);
-        } else {
-          const now = new Date().toLocaleTimeString("pt-BR", { hour12: false });
-          setText("badge-updated", now);
-        }
-
-        setText(
-          "status-text",
-          "Conectado ao painel · JSON recebido com sucesso."
-        );
+        const now = new Date().toLocaleTimeString();
+        statusEl.textContent = "Painel atualizado às " + now;
       } catch (err) {
-        console.error("Erro ao buscar painel:", err);
-        const dot = $("status-dot");
-        if (dot) dot.classList.remove("ok");
-        setText(
-          "status-text",
-          "Erro ao atualizar painel. Verifique o JSON no GitHub ou o workflow do n8n."
-        );
+        console.error(err);
+        statusEl.textContent = "Erro ao carregar painel: " + err.message;
       }
     }
 
-    fetchPanel();
-    setInterval(fetchPanel, 3000);
+    // carrega na entrada
+    loadPanel();
+    // atualiza sozinho de X em X segundos
+    setInterval(loadPanel, REFRESH_MS);
   </script>
 </body>
 </html>
