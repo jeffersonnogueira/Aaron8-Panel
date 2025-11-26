@@ -2,10 +2,221 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>AARON 9 - Painel Web</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AARON 9 – AI ULTRA | The Six Seats Investments</title>
+  <style>
+    :root {
+      --bg: #020617;
+      --bg-panel: #020617;
+      --accent: #22c55e;
+      --accent-soft: rgba(34, 197, 94, 0.12);
+      --border: rgba(148, 163, 184, 0.24);
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: radial-gradient(circle at top left, #0f172a 0, #020617 40%, #000 100%);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+    }
+
+    header {
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      backdrop-filter: blur(16px);
+      background: radial-gradient(circle at top left, rgba(34,197,94,0.12), transparent 55%);
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .brand-main {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .tagline {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+    }
+
+    .status-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15,23,42,0.8);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(34,197,94,0.8);
+    }
+
+    main {
+      flex: 1;
+      padding: 18px;
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+    }
+
+    .frame-wrap {
+      width: 100%;
+      max-width: 1720px;
+      aspect-ratio: 16 / 9;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow:
+        0 32px 80px rgba(0,0,0,0.85),
+        0 0 0 1px rgba(15,23,42,0.8);
+      background: radial-gradient(circle at top left, rgba(34,197,94,0.08), #020617 55%, #000 100%);
+      position: relative;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+    }
+
+    .refresh-indicator {
+      position: absolute;
+      right: 16px;
+      bottom: 14px;
+      font-size: 11px;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(148,163,184,0.3);
+    }
+
+    .refresh-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      border: 2px solid rgba(148,163,184,0.7);
+      border-top-color: var(--accent);
+      animation: spin 1.1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    footer {
+      padding: 6px 16px 14px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 1024px) {
+      main {
+        padding: 10px;
+      }
+      .frame-wrap {
+        border-radius: 0;
+        max-width: 100%;
+        aspect-ratio: 9 / 16;
+      }
+      header {
+        padding-inline: 14px;
+      }
+    }
+  </style>
 </head>
-<body style="background:#050816; color:#f5f5f5; font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
-  <h1 style="text-align:center; margin-top:40px;">AARON 9 - Painel Web</h1>
-  <p style="text-align:center;">Se você está vendo esta página, o primeiro passo deu certo. ✅</p>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-title">THE SIX SEATS INVESTMENTS</div>
+      <div class="brand-main">AARON 9 – AI ULTRA</div>
+      <div class="tagline">Radar de dire&ccedil;&atilde;o • Console inteligente • Painel de risco din&acirc;mico</div>
+    </div>
+    <div>
+      <span class="status-pill">
+        <span class="status-dot"></span>
+        Painel conectado ao AARON 8 / n8n (auto-update)
+      </span>
+    </div>
+  </header>
+
+  <main>
+    <div class="frame-wrap">
+      <!-- AQUI VAI O PAINEL DO N8N -->
+      <iframe
+        id="aaron-frame"
+        src="https://jjjnogueira.app.n8n.cloud/webhook/aaron8view"
+        loading="lazy"
+      ></iframe>
+
+      <div class="refresh-indicator">
+        <span class="refresh-dot"></span>
+        Atualiza&ccedil;&atilde;o autom&aacute;tica em tempo real
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    AARON 9 – Painel estrat&eacute;gico em cima do AARON 8 ULTRA • Constru&iacute;do com n8n, ChatGPT e Vercel
+  </footer>
+
+  <script>
+    // Intervalo de atualização (em milissegundos)
+    const REFRESH_MS = 15000; // 15 segundos – pode ajustar depois se quiser
+
+    const frame = document.getElementById("aaron-frame");
+    const baseSrc = frame.src.split("?")[0];
+
+    function reloadFrame() {
+      frame.src = baseSrc + "?ts=" + Date.now();
+    }
+
+    // Atualiza o painel automaticamente de tempos em tempos
+    setInterval(reloadFrame, REFRESH_MS);
+  </script>
 </body>
 </html>
