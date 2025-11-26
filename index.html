@@ -1,55 +1,1884 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+// Pega o painel vindo do node anterior
+const panel = $json.panel || {};
+
+// Helpers -----------------------------
+function fmtNum(v, dec = 2) {
+  if (typeof v !== 'number') return v ?? '-';
+  return v.toFixed(dec);
+}
+
+function yes(flag) {
+  return flag ? 'sim' : 'não';
+}
+
+function check(flag) {
+  return flag ? '✔' : '—';
+}
+
+// Formata timestamp do painel no fuso de Utah (Mountain)
+function formatPanelTimestamp(ts) {
+  if (ts === undefined || ts === null) return 'sem timestamp';
+
+  if (typeof ts === 'string') {
+    const n = Number(ts);
+    if (!isNaN(n)) ts = n;
+  }
+
+  if (typeof ts === 'number') {
+    try {
+      return new Date(ts).toLocaleString('en-US', {
+        timeZone: 'America/Denver',
+      });
+    } catch (e) {
+      return String(ts);
+    }
+  }
+
+  return String(ts);
+}
+
+// ---- Desestrutura o painel em blocos -----------------
+
+const status    = panel.status_geral || {};
+const est       = panel.estrutura_mercado || {};
+const micro     = panel.microcontexto || {};
+const adv       = panel.ai_advisor || {};
+const fc        = panel.ai_forecast || {};
+const cons      = panel.ai_consensus || {};
+const sig       = panel.sinais || {};
+const pullback  = panel.check_pullback || {}; // NOVO bloco de pullback
+
+// Metadados pro topo
+const symbol      = panel.symbol || 'NASDAQ:NVDA';
+const painelTs    = formatPanelTimestamp(panel.timestamp);
+const serverNow   = new Date().toLocaleString('en-US', { timeZone: 'America/Denver' });
+const precoRef    = fc.preco_alvo ?? est.suporte_critico ?? est.resistencia_critica ?? '-';
+const atrMult     = est.pullback_profundidade_atr;
+
+// ------------- LÓGICA DO MINI-GRÁFICO DE DIREÇÃO (CURTO PRAZO) ----------------
+const dirPrevRaw = (fc.direcao_prevista || '').toString();
+const probNum    = typeof fc.probabilidade === 'number' ? fc.probabilidade : 0;
+
+let dirLabel  = dirPrevRaw || 'Neutra / Lateral';
+let dirArrow  = '→';
+let dirClass  = 'dir-neutral';
+let dirTexto  = 'Cenário lateral / indefinido. Aguarde confirmação sólida.';
+
+const d = dirPrevRaw.toLowerCase();
+
+// Alta / bullish
+if (
+  d.includes('alta') ||
+  d.includes('up') ||
+  d.includes('bull') ||
+  d.includes('compra')
+) {
+  dirArrow = '↑';
+  dirClass = 'dir-up';
+  if (!dirLabel) dirLabel = 'Alta';
+  dirTexto = 'Fluxo favorece movimentos de alta nas próximas velas. Procure oportunidades de compra bem posicionadas.';
+}
+
+// Baixa / bearish
+if (
+  d.includes('baixa') ||
+  d.includes('down') ||
+  d.includes('bear') ||
+  d.includes('venda')
+) {
+  dirArrow = '↓';
+  dirClass = 'dir-down';
+  if (!dirLabel || dirLabel === 'Neutra / Lateral') dirLabel = 'Baixa';
+  dirTexto = 'Fluxo favorece movimentos de baixa nas próximas velas. Oportunidades de venda / proteção podem fazer sentido.';
+}
+
+const probClamp = Math.max(0, Math.min(100, probNum));
+
+// ----------- DIREÇÃO GERAL (OVERALL / DIA TODO) -------------------
+const overallDirRaw = (status.tendencia || cons.consenso_geral || dirPrevRaw || '').toString();
+let overallLabel = overallDirRaw || 'Neutra / Lateral';
+let overallArrow = '→';
+let overallClass = 'dir-neutral';
+let overallTexto = 'Panorama geral do dia mais lateral / misto. Foque em extremos de preço e rompimentos realmente claros.';
+
+const od = overallDirRaw.toLowerCase();
+
+if (
+  od.includes('alta') ||
+  od.includes('up') ||
+  od.includes('bull') ||
+  od.includes('compra')
+) {
+  overallArrow = '↑';
+  overallClass = 'dir-up';
+  if (!overallLabel) overallLabel = 'Alta';
+  overallTexto = 'Fluxo geral do dia puxa para movimentos de alta. Contexto favorece compras em pullbacks bem posicionados.';
+}
+
+if (
+  od.includes('baixa') ||
+  od.includes('down') ||
+  od.includes('bear') ||
+  od.includes('venda')
+) {
+  overallArrow = '↓';
+  overallClass = 'dir-down';
+  if (!overallLabel || overallLabel === 'Neutra / Lateral') overallLabel = 'Baixa';
+  overallTexto = 'Fluxo geral do dia puxa para movimentos de baixa. Contexto favorece vendas / proteção em repiques.';
+}
+
+const overallProbRaw =
+  typeof status.confianca === 'number'
+    ? status.confianca
+    : typeof status.forca === 'number'
+      ? status.forca
+      : probClamp;
+
+const overallProbClamp = Math.max(0, Math.min(100, overallProbRaw));
+
+// ------------- CHECKLIST DE PADRÕES (ON/OFF + TEXTOS) --------------
+const sinalRomp   = !!sig.rompimento;
+const sinalRev    = !!sig.reversao;
+const sinalCont   = !!sig.continuacao;
+const sinalExaust = !!sig.exaustao;
+const sinalDiv    = !!sig.divergencia;
+const sinalVol    = !!sig.volume_anormal;
+
+const descRomp = sinalRomp
+  ? 'Preço rompeu nível importante. Valide direção antes de entrar atrasado.'
+  : 'Sem rompimento forte no momento.';
+
+const descRev = sinalRev
+  ? 'Mercado sinaliza possível inversão. Proteja lucro e reduza risco.'
+  : 'Reversão ainda não clara.';
+
+const descCont = sinalCont
+  ? 'Fluxo favorece continuação da tendência atual.'
+  : 'Continuação ainda não confirmada.';
+
+const descExaust = sinalExaust
+  ? 'Movimento esticado: atenção a possíveis pullbacks ou reversões.'
+  : 'Sem sinais claros de exaustão.';
+
+const descDiv = sinalDiv
+  ? 'Divergência em indicadores: cuidado com falsos rompimentos.'
+  : 'Sem divergências relevantes detectadas.';
+
+const descVol = sinalVol
+  ? 'Volume anormal: players grandes podem estar atuando neste movimento.'
+  : 'Volume dentro do normal.';
+
+// ---------------- PATTERN RADAR (INTRADAY – DIA TODO) -----------------
+const tendenciaRaw = status.tendencia || '';
+const tendencia    = tendenciaRaw.toLowerCase();
+
+// default: range lateral
+let patternKey  = 'range';
+let patternName = 'Retângulo / Range Lateral';
+let patternKind = 'Neutro';
+let patternBias = 'Neutro';
+let patternNote = 'Mercado preso em faixa de preço. Estratégias de compra no suporte e venda na resistência podem fazer mais sentido. Leitura baseada no contexto intraday (~7:30–14:00).';
+
+if (sinalRomp && sinalCont && tendencia.includes('alta')) {
+  patternKey  = 'bull-flag';
+  patternName = 'Bull Flag / Bandeira de Alta';
+  patternKind = 'Continuação';
+  patternBias = 'Bullish';
+  patternNote = 'Tendência de alta com correção em bandeira: continuação para cima é o cenário mais provável (janela intraday ~7:30–14:00).';
+} else if (sinalRomp && sinalCont && tendencia.includes('baixa')) {
+  patternKey  = 'bear-flag';
+  patternName = 'Bear Flag / Bandeira de Baixa';
+  patternKind = 'Continuação';
+  patternBias = 'Bearish';
+  patternNote = 'Tendência de baixa com correção em bandeira: continuação para baixo é o cenário dominante (janela intraday ~7:30–14:00).';
+} else if (sinalRev && tendencia.includes('alta')) {
+  patternKey  = 'reversal-top';
+  patternName = 'Topo de Reversão (Double Top / Head & Shoulders)';
+  patternKind = 'Reversão';
+  patternBias = 'Bearish';
+  patternNote = 'Após uma perna de alta, sinais de reversão sugerem topo importante. Proteja lucro e evite compras tardias.';
+} else if (sinalRev && tendencia.includes('baixa')) {
+  patternKey  = 'reversal-bottom';
+  patternName = 'Fundo de Reversão (Double Bottom / Inverse H&S)';
+  patternKind = 'Reversão';
+  patternBias = 'Bullish';
+  patternNote = 'Após uma perna de baixa, sinais de reversão sugerem fundo importante. Avalie oportunidades de compra com gestão de risco.';
+}
+
+// ---------------- PATTERN RADAR (CURTO PRAZO – ÚLTIMAS VELAS) ---------
+const tendTxt   = tendencia;
+const microDir  = (micro.direcao || '').toLowerCase();
+const pbAtivo   = !!est.pullback_ativo;
+
+let shortKey   = 'range';
+let shortName  = 'Sem padrão claro';
+let shortKind  = 'Indefinido';
+let shortBias  = 'Neutro';
+let shortNote  = 'Fluxo recente ainda não forma um padrão clássico óbvio. Valide diretamente no gráfico principal.';
+
+if ((tendTxt.includes('neutra') || microDir.includes('lateral')) && !sinalRev && !sinalCont) {
+  shortKey  = 'range';
+  shortName = 'Range / Retângulo curto';
+  shortKind = 'Lateral';
+  shortBias = 'Neutro';
+  shortNote = 'Últimas velas indicam consolidação curta em faixa de preço. Melhor esperar rompimento para direcional forte.';
+} else if (tendTxt.includes('alta') && sinalCont && pbAtivo && typeof atrMult === 'number' && atrMult <= 1.0) {
+  shortKey  = 'bull-flag';
+  shortName = 'Bandeira / Pennant de alta';
+  shortKind = 'Continuação';
+  shortBias = 'Bullish';
+  shortNote = 'Movimento de alta com pullbacks pequenos sugere bandeira/pennant de continuação da tendência nas últimas velas.';
+} else if (tendTxt.includes('baixa') && sinalCont && pbAtivo && typeof atrMult === 'number' && atrMult <= 1.0) {
+  shortKey  = 'bear-flag';
+  shortName = 'Bandeira / Pennant de baixa';
+  shortKind = 'Continuação';
+  shortBias = 'Bearish';
+  shortNote = 'Movimento de baixa com pullbacks pequenos sugere bandeira/pennant de continuação da tendência nas últimas velas.';
+} else if (sinalRev && tendTxt.includes('baixa')) {
+  shortKey  = 'reversal-bottom';
+  shortName = 'Fundo de reversão (curto prazo)';
+  shortKind = 'Reversão';
+  shortBias = 'Bullish';
+  shortNote = 'Reversão contra tendência de baixa nas últimas velas. Pode ser início de fundo duplo ou outro padrão de inversão.';
+} else if (sinalRev && tendTxt.includes('alta')) {
+  shortKey  = 'reversal-top';
+  shortName = 'Topo de reversão (curto prazo)';
+  shortKind = 'Reversão';
+  shortBias = 'Bearish';
+  shortNote = 'Reversão contra tendência de alta nas últimas velas. Pode ser início de topo duplo ou padrão de distribuição.';
+}
+
+// Desenho SVG do padrão (mini-cheat-sheet)
+function patternSvg(key) {
+  if (key === 'bull-flag') {
+    return `
+      <svg viewBox="0 0 120 60" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrowHeadUp" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <polygon points="0 0, 6 3, 0 6" fill="#f97316" />
+          </marker>
+        </defs>
+        <rect x="0" y="0" width="120" height="60" fill="transparent"/>
+        <!-- perna de alta -->
+        <polyline points="5,55 20,45 35,35 50,25"
+          fill="none" stroke="#f97316" stroke-width="1.5"
+          stroke-dasharray="3 3" marker-end="url(#arrowHeadUp)"/>
+        <!-- mastro + bandeira -->
+        <line x1="55" y1="20" x2="55" y2="45" stroke="#60a5fa" stroke-width="1.5" />
+        <polygon points="55,20 80,25 55,30"
+          fill="rgba(96,165,250,0.2)" stroke="#60a5fa" stroke-width="1.2"/>
+        <!-- continuação -->
+        <polyline points="80,30 95,25 115,15"
+          fill="none" stroke="#22c55e" stroke-width="1.5" />
+      </svg>
+    `;
+  }
+  if (key === 'bear-flag') {
+    return `
+      <svg viewBox="0 0 120 60" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrowHeadDown" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <polygon points="0 6, 6 3, 0 0" fill="#f97316" />
+          </marker>
+        </defs>
+        <rect x="0" y="0" width="120" height="60" fill="transparent"/>
+        <!-- perna de baixa -->
+        <polyline points="5,5 20,15 35,25 50,35"
+          fill="none" stroke="#f97316" stroke-width="1.5"
+          stroke-dasharray="3 3" marker-end="url(#arrowHeadDown)"/>
+        <!-- mastro + bandeira -->
+        <line x1="55" y1="15" x2="55" y2="40" stroke="#60a5fa" stroke-width="1.5" />
+        <polygon points="55,25 80,20 55,30"
+          fill="rgba(96,165,250,0.2)" stroke="#60a5fa" stroke-width="1.2"/>
+        <!-- continuação -->
+        <polyline points="80,30 95,35 115,45"
+          fill="none" stroke="#f97373" stroke-width="1.5" />
+      </svg>
+    `;
+  }
+  if (key === 'reversal-top') {
+    return `
+      <svg viewBox="0 0 120 60" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="120" height="60" fill="transparent"/>
+        <!-- double top / H&S -->
+        <polyline points="5,45 25,20 45,45 65,20 85,45"
+          fill="none" stroke="#f97316" stroke-width="1.5"/>
+        <line x1="10" y1="45" x2="110" y2="45"
+          stroke="#60a5fa" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <!-- queda depois do topo -->
+        <polyline points="85,45 100,50 115,55"
+          fill="none" stroke="#f97373" stroke-width="1.5"/>
+      </svg>
+    `;
+  }
+  if (key === 'reversal-bottom') {
+    return `
+      <svg viewBox="0 0 120 60" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="120" height="60" fill="transparent"/>
+        <!-- double bottom / inverse H&S -->
+        <polyline points="5,15 25,40 45,15 65,40 85,15"
+          fill="none" stroke="#f97316" stroke-width="1.5"/>
+        <line x1="10" y1="15" x2="110" y2="15"
+          stroke="#60a5fa" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <!-- alta depois do fundo -->
+        <polyline points="85,15 100,10 115,5"
+          fill="none" stroke="#22c55e" stroke-width="1.5"/>
+      </svg>
+    `;
+  }
+  if (key === 'range') {
+    return `
+      <svg viewBox="0 0 120 60" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="120" height="60" fill="transparent"/>
+        <rect x="20" y="15" width="80" height="30"
+          fill="rgba(96,165,250,0.08)" stroke="#60a5fa" stroke-width="1.4"/>
+        <polyline points="20,40 35,20 50,40 65,20 80,40 95,20"
+          fill="none" stroke="#f97316" stroke-width="1.5"/>
+      </svg>
+    `;
+  }
+  return `
+    <svg viewBox="0 0 120 60" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="120" height="60" fill="transparent"/>
+      <text x="50%" y="50%" text-anchor="middle" fill="#6b7280" font-size="10">sem desenho</text>
+    </svg>
+  `;
+}
+
+const patternSvgMarkup      = patternSvg(patternKey);
+const patternSvgMarkupShort = patternSvg(shortKey);
+
+// -------- MARKET STRUCTURE DO DIA (ZIGZAG) ------------
+const msDia =
+  panel.market_structure_dia ||
+  panel.market_structure_dia_full ||
+  panel.market_structure ||
+  {};
+
+let msSeqRaw =
+  msDia.sequencia ||
+  msDia.seq ||
+  msDia.sequence ||
+  panel.market_structure_seq ||
+  '';
+
+if (Array.isArray(msSeqRaw)) {
+  msSeqRaw = msSeqRaw.join(' → ');
+}
+
+const marketStructureSeq = (msSeqRaw || '').toString() || '—';
+const marketStructureLabel = msDia.nome || msDia.rotulo || '';
+const marketStructureSession =
+  msDia.janela ||
+  msDia.sessao ||
+  'Sessão regular 7:30–14:00 (intraday)';
+
+const marketStructureSwings =
+  msDia.swings ||
+  msDia.qtd_swings ||
+  msDia.numero_swings ||
+  null;
+
+let marketStructureBias = msDia.vies || msDia.bias || '';
+let marketStructureBiasCss = 'bias-neutral';
+
+const seqUpper = marketStructureSeq.toUpperCase();
+const hasBull = seqUpper.includes('HH') || seqUpper.includes('HL');
+const hasBear = seqUpper.includes('LH') || seqUpper.includes('LL');
+
+if (!marketStructureBias) {
+  if (hasBull && !hasBear) {
+    marketStructureBias = 'Estrutura mais altista';
+    marketStructureBiasCss = 'bias-bull';
+  } else if (hasBear && !hasBull) {
+    marketStructureBias = 'Estrutura mais baixista';
+    marketStructureBiasCss = 'bias-bear';
+  } else if (hasBull && hasBear) {
+    marketStructureBias = 'Estrutura mista (altas e baixas)';
+    marketStructureBiasCss = 'bias-neutral';
+  } else {
+    marketStructureBias = 'Sem leitura clara';
+    marketStructureBiasCss = 'bias-neutral';
+  }
+} else {
+  const biasLower = marketStructureBias.toLowerCase();
+  if (biasLower.includes('alta') || biasLower.includes('bull')) {
+    marketStructureBiasCss = 'bias-bull';
+  } else if (biasLower.includes('baixa') || biasLower.includes('bear')) {
+    marketStructureBiasCss = 'bias-bear';
+  }
+}
+
+let marketStructureComment =
+  msDia.comentario || msDia.comment || '';
+
+if (!marketStructureComment) {
+  if (marketStructureBiasCss === 'bias-bull') {
+    marketStructureComment =
+      'ZigZag intraday mostra predominância de HH/HL — fluxo estruturalmente altista ao longo do dia.';
+  } else if (marketStructureBiasCss === 'bias-bear') {
+    marketStructureComment =
+      'ZigZag intraday mostra predominância de LH/LL — fluxo estruturalmente baixista ao longo do dia.';
+  } else if (hasBull && hasBear) {
+    marketStructureComment =
+      'Estrutura do dia alterna entre impulsos de alta e baixa — contexto mais indeciso / consolidado.';
+  } else {
+    marketStructureComment =
+      'Aguardando mais swings para formar uma leitura estrutural clara.';
+  }
+}
+
+// <<< NOVO: função para o mini-gráfico dinâmico da estrutura do dia >>>
+function buildMarketStructureSvg(biasCss) {
+  // 1) Tendência de alta (HH/HL predominando)
+  if (biasCss === 'bias-bull') {
+    return `
+      <svg viewBox="0 0 160 70" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="160" height="70" fill="transparent"/>
+        <!-- ZigZag subindo (alta) -->
+        <polyline
+          points="5,55 25,48 45,40 65,32 85,25 105,20 125,15 145,10"
+          fill="none"
+          stroke="#f97316"
+          stroke-width="1.6"
+        />
+        <!-- Linha de referência -->
+        <line
+          x1="5" y1="50" x2="155" y2="50"
+          stroke="#1f2937"
+          stroke-width="1"
+          stroke-dasharray="4 3"
+        />
+      </svg>
+    `;
+  }
+
+  // 2) Tendência de baixa (LH/LL predominando)
+  if (biasCss === 'bias-bear') {
+    return `
+      <svg viewBox="0 0 160 70" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="160" height="70" fill="transparent"/>
+        <!-- ZigZag descendo (baixa) -->
+        <polyline
+          points="5,15 25,22 45,30 65,38 85,46 105,52 125,58 145,62"
+          fill="none"
+          stroke="#f97316"
+          stroke-width="1.6"
+        />
+        <!-- Linha de referência -->
+        <line
+          x1="5" y1="30" x2="155" y2="30"
+          stroke="#1f2937"
+          stroke-width="1"
+          stroke-dasharray="4 3"
+        />
+      </svg>
+    `;
+  }
+
+  // 3) Padrão neutro / range (lateral, mista, sem leitura clara)
+  return `
+    <svg viewBox="0 0 160 70" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="160" height="70" fill="transparent"/>
+      <!-- Caixa de range -->
+      <rect x="18" y="18" width="124" height="34"
+        fill="rgba(96,165,250,0.08)"
+        stroke="#60a5fa"
+        stroke-width="1.2"
+      />
+      <!-- ZigZag lateral dentro do range -->
+      <polyline
+        points="20,50 35,30 50,46 65,26 80,48 95,28 110,44 125,32"
+        fill="none"
+        stroke="#f97316"
+        stroke-width="1.6"
+      />
+    </svg>
+  `;
+}
+
+// Agora o SVG é dinâmico de acordo com marketStructureBiasCss
+const marketStructureSvg = buildMarketStructureSvg(marketStructureBiasCss);
+
+// ---------- STATUS GERAL (termômetros para o console) ----------
+const tendenciaLabel = status.tendencia || 'Neutro';
+let forcaLabel = '';
+if (typeof status.forca === 'number') {
+  if (status.forca <= 33) forcaLabel = 'fraca';
+  else if (status.forca <= 66) forcaLabel = 'moderada';
+  else forcaLabel = 'forte';
+}
+const statusHeadline = forcaLabel
+  ? `${tendenciaLabel} ${forcaLabel}`
+  : tendenciaLabel;
+
+// TENDÊNCIA vs LATERAL (para o chip "modo de mercado")
+let mercadoModo = 'Lateral / Range';
+const tendLower = (tendenciaLabel || '').toLowerCase();
+if (
+  (tendLower.includes('alta') ||
+    tendLower.includes('baixa') ||
+    tendLower.includes('bull') ||
+    tendLower.includes('bear')) &&
+  typeof status.forca === 'number' &&
+  status.forca >= 40
+) {
+  mercadoModo = 'Em tendência';
+}
+
+const volText  = status.volatilidade || 'Indefinida';
+const sentText = status.sentimento   || '—';
+
+const microBosLabel   = est.micro_bos || 'nenhum';
+const dirHeadlinePill = statusHeadline || dirLabel;
+
+const trendStrengthPct = typeof status.forca === 'number'
+  ? Math.max(0, Math.min(100, status.forca))
+  : null;
+
+const confIaPctConsole = typeof status.confianca === 'number'
+  ? Math.max(0, Math.min(100, status.confianca))
+  : probClamp;
+
+let volPct = 50;
+const volLower = volText.toLowerCase();
+if (volLower.includes('baixa')) volPct = 25;
+else if (volLower.includes('média') || volLower.includes('media')) volPct = 55;
+else if (volLower.includes('alta')) volPct = 85;
+
+let riscoText = (adv.risco || '').toString().trim();
+if (!riscoText) riscoText = 'Médio';
+let riscoPct = 60;
+const riscoLower = riscoText.toLowerCase();
+if (riscoLower.includes('baixo')) riscoPct = 30;
+else if (riscoLower.includes('alto') || riscoLower.includes('elevado') || riscoLower.includes('agressivo')) riscoPct = 85;
+
+// Classe da pill da direção
+let dirPillClass = 'console-pill-neutral';
+const dirHeadlineLower = (dirHeadlinePill || '').toLowerCase();
+if (dirHeadlineLower.includes('alta') || dirHeadlineLower.includes('bull')) {
+  dirPillClass = 'console-pill-bull';
+} else if (
+  dirHeadlineLower.includes('baixa') ||
+  dirHeadlineLower.includes('bear')  ||
+  dirHeadlineLower.includes('queda')
+) {
+  dirPillClass = 'console-pill-bear';
+}
+
+// ---------- CHECK DE PULLBACK / RESPIRO (MESMA LÓGICA, SÓ COM FALLBACK) ----------
+const pbAtr   = pullback.atr_candle_atual
+  ?? pullback.atr_atual
+  ?? est.atr_candle_atual
+  ?? est.atr_atual
+  ?? null;
+
+const pbMult  = pullback.pullback_mult_atr
+  ?? pullback.pullback_atr
+  ?? atrMult
+  ?? null;
+
+const pbTrend   = pullback.tendencia || status.tendencia || '-';
+const pbStruct  = pullback.estrutura || est.ultima_estrutura || '-';
+const pbBroken  = pullback.estrutura_quebrada === true;
+const pbClass   = pullback.classificacao || pullback.pullback_class || 'Classificação';
+const pbMicro   = pullback.micro_estrutura || pullback.micro || micro.alinhamento || micro.direcao || '-';
+const pbConclusion = pullback.conclusao || pullback.conclusion || '';
+
+let pbBias = 'Neutro';
+const pbTrendLower = (pbTrend || '').toLowerCase();
+if (pbTrendLower.includes('alta')) pbBias = 'Bullish';
+else if (pbTrendLower.includes('baixa')) pbBias = 'Bearish';
+
+const isContinuation =
+  pullback.tipo === 'pullback_continuacao' ||
+  pullback.so_pullback === true ||
+  pullback.apenas_pullback === true;
+
+const isReversalRisk =
+  pullback.tipo === 'risco_reversao' ||
+  pullback.reversao === true ||
+  (pbBroken && (pbMult != null && pbMult > 1.5));
+
+let pbBiasCss = 'bias-neutral';
+if (pbBias.toLowerCase().includes('bull')) pbBiasCss = 'bias-bull';
+else if (pbBias.toLowerCase().includes('bear')) pbBiasCss = 'bias-bear';
+
+const pbConclusionText = pbConclusion || (isReversalRisk
+  ? 'Não é mais apenas um pullback – risco claro de reversão.'
+  : 'Parece apenas um pullback dentro da tendência. Continuação provável se o contexto se mantiver.'
+);
+
+// ------------ EXECUÇÃO – A FAVOR vs CONTRA (TERMÔMETROS) ------------
+const favorScoreRaw = typeof adv.a_favor === 'number'
+  ? adv.a_favor
+  : (typeof cons.buy === 'number' ? cons.buy : probClamp);
+
+const contraScoreRaw = typeof adv.contra === 'number'
+  ? adv.contra
+  : (typeof cons.sell === 'number' ? cons.sell : (100 - probClamp));
+
+const favorScore = Math.max(0, Math.min(100, favorScoreRaw));
+const contraScore = Math.max(0, Math.min(100, contraScoreRaw));
+
+let execLabel = 'AGUARDAR / OBSERVAR';
+let execClass = 'exec-neutral';
+const acaoLower = (adv.acao_recomendada || '').toLowerCase();
+
+if (acaoLower.includes('compra') || acaoLower.includes('buy')) {
+  execLabel = 'EXECUTAR COMPRA';
+  execClass = 'exec-buy';
+} else if (
+  acaoLower.includes('venda') ||
+  acaoLower.includes('sell')  ||
+  acaoLower.includes('short')
+) {
+  execLabel = 'EXECUTAR VENDA';
+  execClass = 'exec-sell';
+}
+
+let execContext = adv.motivo || '';
+if (!execContext) {
+  if (isReversalRisk) {
+    execContext = 'Mercado em possível reversão; se operar, reduza tamanho e traga o stop para mais perto.';
+  } else if (isContinuation) {
+    execContext = 'Contexto favorece continuação. Mesmo assim, entre só com stop claro e tamanho de posição saudável.';
+  } else {
+    execContext = 'Contexto misto. Se operar, trate como operação de risco moderado/alto.';
+  }
+}
+
+// ----------------- MONTA TEXTO DO CONSOLE (leve UI/UX) -----------------
+let linhas = [];
+
+linhas.push('CONSOLE INTELIGENTE  │  RESUMO COMPLETO');
+linhas.push('THE SIX SEATS INVESTMENTS — AARON 9 (AI ULTRA)');
+linhas.push('──────────────────────────────────────────────');
+linhas.push('');
+
+// STATUS
+linhas.push('◆ STATUS');
+linhas.push(
+  `Tendência: ${status.tendencia || '-'}  | ` +
+  `Força: ${status.forca ?? '-'}  | ` +
+  `Confiança: ${status.confianca ?? '-'}`
+);
+linhas.push(
+  `Volatilidade: ${status.volatilidade || '-'}  | ` +
+  `Sentimento: ${status.sentimento || '-'}`
+);
+linhas.push('');
+
+// ESTRUTURA
+linhas.push('◆ ESTRUTURA');
+linhas.push(`• Última estrutura: ${est.ultima_estrutura || '-'}`);
+linhas.push(
+  `• HH: ${check(est.hh)} | HL: ${check(est.hl)} | ` +
+  `LH: ${check(est.lh)} | LL: ${check(est.ll)}`
+);
+linhas.push(`• Micro BOS: ${est.micro_bos || 'nenhum'}`);
+linhas.push(
+  `• Pullback ativo: ${yes(est.pullback_ativo)}` +
+  (atrMult != null ? ` (${fmtNum(atrMult)} ATR)` : '')
+);
+linhas.push(
+  `• Suporte crítico: ${fmtNum(est.suporte_critico)}  | ` +
+  `Resistência crítica: ${fmtNum(est.resistencia_critica)}`
+);
+linhas.push(
+  `• Tocou suporte: ${yes(est.tocou_suporte)} | ` +
+  `Tocou resistência: ${yes(est.tocou_resistencia)}`
+);
+linhas.push('');
+
+// PADRÕES
+linhas.push('◆ PADRÕES');
+linhas.push(`• Micro BOS: ${est.micro_bos || 'nenhum claro'}`);
+linhas.push(
+  `• Rompimento: ${yes(sig.rompimento)} | ` +
+  `Reversão: ${yes(sig.reversao)} | ` +
+  `Continuação: ${yes(sig.continuacao)}`
+);
+linhas.push(
+  `• Exaustão: ${yes(sig.exaustao)} | Divergência: ${yes(sig.divergencia)}`
+);
+linhas.push(`• Volume anormal: ${yes(sig.volume_anormal)}`);
+linhas.push('');
+
+// REVERSÃO
+linhas.push('◆ REVERSÃO');
+if (sinalRev) {
+  linhas.push('Status: sinal de reversão ativo – atenção máxima.');
+} else if (sinalCont) {
+  linhas.push('Status: padrão favorece continuação da tendência atual.');
+} else {
+  linhas.push('Status: cenário misto, reversão ainda não confirmada.');
+}
+linhas.push('');
+
+// FORECAST
+linhas.push('◆ FORECAST (3 CANDLES)');
+linhas.push(
+  `• Direção prevista: ${fc.direcao_prevista || '-'} | ` +
+  `Probabilidade: ${fc.probabilidade ?? '-'}%`
+);
+linhas.push(
+  `• Preço alvo: ${fmtNum(fc.preco_alvo)}  | ` +
+  `Janela de tempo: ${fc.tempo_estimado || '-'}`
+);
+linhas.push('');
+
+// MEMÓRIA A8/9
+linhas.push('◆ MEMÓRIA A8/A9');
+if (cons.consenso_geral) {
+  linhas.push(
+    `• Consenso atual: ${cons.consenso_geral} ` +
+    `(Buy: ${cons.buy ?? 0}% | Sell: ${cons.sell ?? 0}% | Neutral: ${cons.neutral ?? 0}%)`
+  );
+  linhas.push('• Leitura rápida: o histórico recente favorece esse consenso.');
+} else {
+  linhas.push('• Sem memória estatística suficiente nesta janela.');
+}
+linhas.push('');
+
+// HORÁRIO
+linhas.push('◆ HORÁRIO (ESTATÍSTICA)');
+linhas.push(`• Janela atual: sessão em andamento – ${serverNow}`);
+linhas.push('• Interpretação: usar contexto de abertura, meio de sessão e fechamento.');
+linhas.push('');
+
+// MICROCONTEXTO
+linhas.push('◆ MICROCONTEXTO');
+linhas.push(
+  `• Direção: ${micro.direcao || '-'}  | ` +
+  `Impulso: ${micro.impulso || '-'}`
+);
+linhas.push(
+  `• Pressão compradora: ${micro.pressao_compradora ?? '-'}  | ` +
+  `Pressão vendedora: ${micro.pressao_vendedora ?? '-'}`
+);
+linhas.push(`• Alinhamento: ${micro.alinhamento || '-'}`);
+linhas.push('');
+
+// CLASSE DO MOVIMENTO
+linhas.push('◆ CLASSE DO MOVIMENTO');
+const janela = (fc.tempo_estimado || '').toLowerCase();
+let classe;
+if (janela.includes('scalp') || janela.includes('min')) {
+  classe = 'Scalp rápido (intra-day).';
+} else if (janela.includes('hora')) {
+  classe = 'Day trade / swing curto.';
+} else if (janela.includes('dia')) {
+  classe = 'Swing trade (vários dias).';
+} else {
+  classe = 'Classe neutra – usar contexto do gráfico.';
+}
+linhas.push(`• Classe: ${classe}`);
+linhas.push('• Risco: ' + (adv.risco || 'avaliar pelo tamanho do stop.'));
+linhas.push('');
+
+// PILOTO PROFISSIONAL
+linhas.push('◆ PILOTO PROFISSIONAL — EXECUÇÃO');
+linhas.push(`• Ação sugerida: ${adv.acao_recomendada || 'observar'}`);
+linhas.push(`• Motivo principal: ${adv.motivo || '-'}`);
+linhas.push(
+  `• Probabilidade declarada pela IA: ${adv.probabilidade ?? '-'}%`
+);
+linhas.push(
+  `• Preço de referência (alvo/suporte/resistência): ${fmtNum(precoRef)}`
+);
+linhas.push('');
+
+// ORDEM FINAL
+linhas.push('◆ ORDEM FINAL (COMANDO DE EXECUÇÃO)');
+if (adv.acao_recomendada && adv.acao_recomendada.toLowerCase().includes('compra')) {
+  linhas.push('► VIÉS: COMPRA (BUY) – somente com gestão de risco adequada.');
+} else if (adv.acao_recomendada && adv.acao_recomendada.toLowerCase().includes('venda')) {
+  linhas.push('► VIÉS: VENDA (SELL) – somente com gestão de risco adequada.');
+} else {
+  linhas.push('► VIÉS: NEUTRO – aguardando confirmação clara.');
+}
+linhas.push('');
+linhas.push('Justificativa resumida:');
+linhas.push(`• ${adv.motivo || 'IA aguardando mais dados para uma decisão clara.'}`);
+
+const consoleText = linhas.join('\n');
+
+// ----------- HTML: UI/UX COMPLETO ------------
+
+const html = `<!DOCTYPE html>
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <title>The Six Seats Investments – AARON 9 – AI ULTRA</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <title>The Six Seats Investments — AARON 9 — AI ULTRA</title>
+
   <style>
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background: #020617;
+      padding: 20px;
+      background: radial-gradient(circle at top left, #071021, #020617);
+      color: #e5e7eb;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    .brand-main {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .brand-sub {
+      font-size: 12px;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      margin-top: 2px;
+      margin-bottom: 4px;
+    }
+    .chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .chip {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #1f2937;
+      background: rgba(15, 23, 42, 0.9);
+      font-size: 11px;
+      color: #e5e7eb;
+      user-select: none;
+    }
+    .chip--live {
+      background: #b91c1c;
+      color: #fee2e2;
+      border-color: #ef4444;
+      font-weight: 600;
+    }
+    .chip--refresh {
+      border-style: dashed;
+      cursor: pointer;
+    }
+    .chip--refresh:hover {
+      background: rgba(31, 41, 55, 0.9);
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+    .card {
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: linear-gradient(135deg, rgba(15,23,42,0.96), rgba(15,23,42,0.85));
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.8);
+      padding: 16px 18px;
       overflow: hidden;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-                   "SF Pro Display", "Segoe UI", sans-serif;
+    }
+    .card-header {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.17em;
+      color: #6b7280;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    pre {
+      margin: 0;
+      font-family: "JetBrains Mono", "Fira Code", monospace;
+      font-size: 11px;
+      line-height: 1.45;
+      color: #e5e7eb;
+      white-space: pre-wrap;
     }
 
-    #wrap {
+    /* STATUS GERAL DO CONSOLE */
+    .console-status-card {
+      margin-bottom: 12px;
+      padding: 10px 12px 12px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(31,41,55,0.95);
+      background: radial-gradient(circle at top left, rgba(15,23,42,0.98), rgba(15,23,42,0.92));
+      font-size: 11px;
+    }
+    .console-status-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    .console-status-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #6b7280;
+      margin-bottom: 3px;
+    }
+    .console-status-headline {
+      font-size: 14px;
+      font-weight: 600;
+      color: #e5e7eb;
+      margin-bottom: 2px;
+    }
+    .console-status-sub {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .console-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+    .console-pill {
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      border: 1px solid rgba(55,65,81,0.9);
+      background: rgba(15,23,42,0.95);
+      color: #e5e7eb;
+    }
+    .console-pill-bull {
+      border-color: rgba(34,197,94,0.9);
+      color: #bbf7d0;
+      background: rgba(22,163,74,0.18);
+    }
+    .console-pill-bear {
+      border-color: rgba(239,68,68,0.9);
+      color: #fecaca;
+      background: rgba(220,38,38,0.18);
+    }
+    .console-pill-neutral {
+      border-color: rgba(148,163,184,0.9);
+      color: #e5e7eb;
+    }
+    .console-status-bars {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 12px;
+    }
+    .console-status-bar-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #9ca3af;
+      margin-bottom: 2px;
+    }
+    .console-status-bar-bg {
       width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      overflow: hidden;
+      border: 1px solid rgba(31,41,55,0.95);
+    }
+    .console-status-bar-fill {
       height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #22c55e, #facc15, #ef4444);
     }
 
-    iframe {
+    /* MINI-GRÁFICO DE DIREÇÃO */
+    .direction-root {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .direction-main {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .direction-circle {
+      width: 88px;
+      height: 88px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: radial-gradient(circle at 30% 0%, #0f172a, #020617);
+      box-shadow: 0 0 25px rgba(15, 23, 42, 0.9);
+      font-size: 38px;
+      font-weight: 700;
+    }
+    .dir-up {
+      color: #22c55e;
+      border-color: rgba(34, 197, 94, 0.7);
+      box-shadow: 0 0 28px rgba(34, 197, 94, 0.35);
+    }
+    .dir-down {
+      color: #f97373;
+      border-color: rgba(239, 68, 68, 0.8);
+      box-shadow: 0 0 28px rgba(239, 68, 68, 0.4);
+    }
+    .dir-neutral {
+      color: #e5e7eb;
+      border-color: rgba(148, 163, 184, 0.7);
+      box-shadow: 0 0 24px rgba(148, 163, 184, 0.3);
+    }
+    .direction-label-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .direction-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #9ca3af;
+    }
+    .direction-label {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .direction-sub {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .prob-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 11px;
+    }
+    .prob-bar-bg {
       width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      overflow: hidden;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+    }
+    .prob-bar-fill {
       height: 100%;
-      border: 0;
-      display: block;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #0ea5e9, #22c55e);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .prob-text-row {
+      display: flex;
+      justify-content: space-between;
+      color: #9ca3af;
+    }
+    .direction-note {
+      font-size: 11px;
+      color: #9ca3af;
+      line-height: 1.4;
+    }
+
+    /* SEÇÕES EXTRAS (ESTRUTURA + CHECKLIST + PATTERN RADAR) */
+    .section-block {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(31, 41, 55, 0.9);
+    }
+    .section-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+
+    .micro-structure-row {
+      display: flex;
+      gap: 10px;
+    }
+    .micro-pill {
+      flex: 1;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      background: radial-gradient(circle at top left, rgba(15,23,42,0.9), rgba(15,23,42,0.7));
+    }
+    .micro-pill-label {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #9ca3af;
+      font-size: 10px;
+    }
+    .micro-pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #4b5563;
+      box-shadow: 0 0 0 1px rgba(55, 65, 81, 0.9);
+    }
+    .micro-pill-dot.on-up {
+      background: #22c55e;
+      box-shadow: 0 0 8px rgba(34, 197, 94, 0.7);
+    }
+    .micro-pill-dot.on-down {
+      background: #f97373;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.7);
+    }
+
+    .patterns-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .pattern-card {
+      border-radius: 10px;
+      padding: 6px 8px;
+      border: 1px solid rgba(31, 41, 55, 0.95);
+      background: radial-gradient(circle at top left, #020617, #020617);
+      font-size: 10px;
+    }
+    .pattern-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .pattern-name {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #9ca3af;
+      font-size: 9px;
+    }
+    .pattern-badge {
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 9px;
+      font-weight: 500;
+    }
+    .pattern-badge.on {
+      background: rgba(34, 197, 94, 0.12);
+      color: #bbf7d0;
+      border: 1px solid rgba(34, 197, 94, 0.8);
+    }
+    .pattern-badge.off {
+      background: rgba(17, 24, 39, 0.9);
+      color: #6b7280;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+    }
+    .pattern-desc {
+      color: #9ca3af;
+      font-size: 10px;
+      line-height: 1.4;
+    }
+
+    /* PATTERN RADAR BLOCK */
+    .pattern-radar-card {
+      margin-top: 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(31,41,55,0.95);
+      background: radial-gradient(circle at top left, rgba(15,23,42,0.95), rgba(15,23,42,0.9));
+      padding: 8px 10px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+    }
+    .pattern-tags {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+      flex-wrap: wrap;
+    }
+    .pattern-tag {
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 9px;
+      border: 1px solid rgba(55,65,81,0.9);
+      color: #9ca3af;
+    }
+    .pattern-tag.kind {
+      border-color: rgba(96,165,250,0.8);
+      color: #bfdbfe;
+    }
+    .pattern-tag.bias-bull {
+      border-color: rgba(34,197,94,0.8);
+      color: #bbf7d0;
+    }
+    .pattern-tag.bias-bear {
+      border-color: rgba(239,68,68,0.8);
+      color: #fecaca;
+    }
+    .pattern-tag.bias-neutral {
+      border-color: rgba(148,163,184,0.9);
+      color: #e5e7eb;
+    }
+    .pattern-radar-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+    .pattern-radar-name {
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .pattern-radar-note {
+      font-size: 10px;
+      color: #9ca3af;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+    .pattern-svg-box {
+      border-radius: 10px;
+      border: 1px solid rgba(31,41,55,0.95);
+      background: radial-gradient(circle at top left, #020617, #020617);
+      padding: 4px;
+    }
+
+    /* CHECK DE PULLBACK / RESPIRO */
+    .pullback-card {
+      margin-top: 4px;
+      border-radius: 12px;
+      border: 1px solid rgba(31,41,55,0.95);
+      background: radial-gradient(circle at top left, rgba(15,23,42,0.95), rgba(15,23,42,0.9));
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 11px;
+    }
+    .pullback-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .pullback-label {
+      font-size: 10px;
+      color: #6b7280;
+      margin-bottom: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    .pullback-value {
+      font-size: 12px;
+      color: #e5e7eb;
+    }
+    .pullback-tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .pullback-conclusion-box {
+      margin-top: 4px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border-left: 3px solid #22c55e;
+      background: linear-gradient(135deg, rgba(22,163,74,0.16), rgba(15,23,42,0.98));
+    }
+    .pullback-conclusion-box.danger {
+      border-left-color: #ef4444;
+      background: linear-gradient(135deg, rgba(220,38,38,0.2), rgba(15,23,42,0.98));
+    }
+    .pullback-conclusion-title {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .pullback-conclusion-text {
+      font-size: 11px;
+      color: #e5e7eb;
+    }
+
+    /* EXECUÇÃO – TERMÔMETROS */
+    .execution-card {
+      margin-top: 4px;
+      border-radius: 12px;
+      border: 1px solid rgba(31,41,55,0.95);
+      background: radial-gradient(circle at top left, rgba(15,23,42,0.96), rgba(15,23,42,0.9));
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 11px;
+    }
+    .execution-header-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .execution-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #6b7280;
+    }
+    .exec-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(55,65,81,0.95);
+      background: radial-gradient(circle at top left, rgba(15,23,42,0.96), rgba(15,23,42,0.92));
+    }
+    .exec-buy {
+      border-color: rgba(34,197,94,0.9);
+      color: #bbf7d0;
+      background: radial-gradient(circle at top left, rgba(22,163,74,0.3), rgba(15,23,42,0.98));
+    }
+    .exec-sell {
+      border-color: rgba(239,68,68,0.9);
+      color: #fecaca;
+      background: radial-gradient(circle at top left, rgba(220,38,38,0.3), rgba(15,23,42,0.98));
+    }
+    .exec-neutral {
+      border-color: rgba(148,163,184,0.9);
+      color: #e5e7eb;
+    }
+    .execution-sub {
+      font-size: 10px;
+      color: #9ca3af;
+    }
+    .execution-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .execution-bar-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #9ca3af;
+      margin-bottom: 2px;
+    }
+    .execution-bar-bg {
+      width: 100%;
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      overflow: hidden;
+      border: 1px solid rgba(31,41,55,0.95);
+    }
+    .execution-bar-fill-favor {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #22c55e, #0ea5e9);
+      width: ${favorScore}%;
+      transition: width 0.3s ease;
+    }
+    .execution-bar-fill-contra {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #f97373, #facc15);
+      width: ${contraScore}%;
+      transition: width 0.3s ease;
+    }
+    .execution-footer-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      color: #6b7280;
+      margin-bottom: 2px;
+    }
+    .execution-footer-text {
+      font-size: 11px;
+      color: #e5e7eb;
+    }
+
+    /* MARKET STRUCTURE DO DIA (ZIGZAG) — BLOCO NO CONSOLE ESQUERDO */
+    .ms-card {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(31,41,55,0.95);
+      background: radial-gradient(circle at top left, rgba(15,23,42,0.98), rgba(15,23,42,0.9));
+      font-size: 11px;
+    }
+    .ms-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .ms-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #6b7280;
+    }
+    .ms-subtitle {
+      font-size: 10px;
+      color: #9ca3af;
+      margin-top: 2px;
+    }
+    .ms-swings-pill {
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(55,65,81,0.95);
+      font-size: 10px;
+      color: #e5e7eb;
+      background: radial-gradient(circle at top left, rgba(15,23,42,0.96), rgba(15,23,42,0.9));
+    }
+    .ms-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.8fr);
+      gap: 10px;
+      align-items: center;
+    }
+    .ms-svg-box {
+      border-radius: 10px;
+      border: 1px solid rgba(31,41,55,0.95);
+      background: radial-gradient(circle at top left, #020617, #020617);
+      padding: 4px;
+    }
+    .ms-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .ms-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      color: #6b7280;
+    }
+    .ms-seq {
+      font-family: "JetBrains Mono","Fira Code",monospace;
+      font-size: 11px;
+      color: #e5e7eb;
+      margin-top: 2px;
+    }
+    .ms-tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .ms-comment {
+      font-size: 10px;
+      color: #9ca3af;
+      margin-top: 4px;
+      line-height: 1.4;
     }
   </style>
 </head>
 <body>
-  <div id="wrap">
-    <!-- Aqui dentro vai SEMPRE o HTML pronto que o n8n gera -->
-    <iframe id="aaron-panel" src="" loading="lazy"></iframe>
+  <div class="top-bar">
+    <div>
+      <div class="brand-main">The Six Seats Investments</div>
+      <div class="brand-sub">AARON 9 — AI ULTRA</div>
+      <div>
+        Última atualização do painel (horário local): ${painelTs}<br/>
+        Última renderização desta página (serverNow): ${serverNow}
+      </div>
+    </div>
   </div>
 
-  <script>
-    // URL do SEU painel no n8n – é aqui que está aquele HTML perfeito
-    const PANEL_URL = "https://jjjnogueira.app.n8n.cloud/webhook/aaron8-view";
+  <div class="chips">
+    <div class="chip">Ativo: ${symbol}</div>
+    <div class="chip chip--refresh" onclick="window.location.reload()">Atualizar painel</div>
+    <div class="chip">Preço de referência: ${fmtNum(precoRef)}</div>
+    <div class="chip">Profundidade do pullback: ${atrMult != null ? fmtNum(atrMult) + ' ATR' : '-'}</div>
+    <div class="chip">Tendência do mercado: ${mercadoModo}</div>
+    <div class="chip chip--live">● LIVE</div>
+  </div>
 
-    function carregarPainel() {
-      const iframe = document.getElementById("aaron-panel");
-      // query string só para evitar cache
-      iframe.src = PANEL_URL + "?t=" + Date.now();
-    }
+  <div class="layout">
+    <div class="card">
+      <div class="card-header">
+        <span>CONSOLE INTELIGENTE — RESUMO COMPLETO</span>
+      </div>
 
-    // carrega na primeira vez
-    carregarPainel();
+      <div class="console-status-card">
+        <div class="console-status-header">
+          <div>
+            <div class="console-status-title">STATUS GERAL</div>
+            <div class="console-status-headline">${statusHeadline}</div>
+            <div class="console-status-sub">
+              Volatilidade: ${volText} · Sentimento: ${sentText}
+            </div>
+          </div>
+          <div class="console-pill-row">
+            <span class="console-pill">Micro BOS: ${microBosLabel}</span>
+            <span class="console-pill ${dirPillClass}">Direção: ${dirHeadlinePill}</span>
+          </div>
+        </div>
 
-    // recarrega automaticamente a cada 15 segundos (ajuste se quiser)
-    setInterval(carregarPainel, 15000);
-  </script>
+        <div class="console-status-bars">
+          <div>
+            <div class="console-status-bar-label-row">
+              <span>Força da tendência</span>
+              <span>${trendStrengthPct != null ? trendStrengthPct + '%' : '-'}</span>
+            </div>
+            <div class="console-status-bar-bg">
+              <div class="console-status-bar-fill" style="width: ${trendStrengthPct != null ? trendStrengthPct : 0}%;"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="console-status-bar-label-row">
+              <span>Confiança da IA</span>
+              <span>${confIaPctConsole != null ? confIaPctConsole + '%' : '-'}</span>
+            </div>
+            <div class="console-status-bar-bg">
+              <div class="console-status-bar-fill" style="width: ${confIaPctConsole != null ? confIaPctConsole : 0}%;"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="console-status-bar-label-row">
+              <span>Volatilidade</span>
+              <span>${volText}</span>
+            </div>
+            <div class="console-status-bar-bg">
+              <div class="console-status-bar-fill" style="width: ${volPct}%;"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="console-status-bar-label-row">
+              <span>Risco (execução)</span>
+              <span>${riscoText}</span>
+            </div>
+            <div class="console-status-bar-bg">
+              <div class="console-status-bar-fill" style="width: ${riscoPct}%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <pre>${consoleText}</pre>
+
+      <div class="ms-card">
+        <div class="ms-header">
+          <div>
+            <div class="ms-title">Market structure do dia (7:30 → agora)</div>
+            <div class="ms-subtitle">${marketStructureSession}</div>
+          </div>
+          <div class="ms-swings-pill">
+            ${marketStructureSwings != null ? marketStructureSwings + ' swings' : 'ZigZag intraday'}
+          </div>
+        </div>
+        <div class="ms-body">
+          <div class="ms-svg-box">
+            ${marketStructureSvg}
+          </div>
+          <div class="ms-info">
+            <div class="ms-label">Sequência HH · HL · LH · LL</div>
+            <div class="ms-seq">${marketStructureSeq}</div>
+            <div class="ms-tags-row">
+              <span class="pattern-tag ${marketStructureBiasCss}">${marketStructureBias}</span>
+              ${marketStructureLabel ? `<span class="pattern-tag kind">${marketStructureLabel}</span>` : ''}
+            </div>
+            <div class="ms-comment">
+              ${marketStructureComment}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span>RADAR VISUAL DE DIREÇÃO</span>
+        <span style="font-size:10px;color:#9ca3af;">(resumo rápido: para onde o fluxo aponta)</span>
+      </div>
+      <div class="direction-root">
+
+        <!-- 1) OVERALL – DIREÇÃO GERAL DO DIA -->
+        <div class="direction-main">
+          <div class="direction-circle ${overallClass}">
+            ${overallArrow}
+          </div>
+          <div class="direction-label-block">
+            <div class="direction-title">Direção geral do dia</div>
+            <div class="direction-label">${overallLabel}</div>
+            <div class="direction-sub">
+              Baseada em tendência, volatilidade e memória A8/A9.
+            </div>
+          </div>
+        </div>
+
+        <div class="prob-wrapper">
+          <div class="prob-text-row">
+            <span>Confiança no cenário geral</span>
+            <span>${overallProbClamp}%</span>
+          </div>
+          <div class="prob-bar-bg">
+            <div class="prob-bar-fill" style="width: ${overallProbClamp}%;"></div>
+          </div>
+        </div>
+
+        <div class="direction-note">
+          ${overallTexto}
+        </div>
+
+        <!-- 2) DIREÇÃO PREVISTA ATUAL (1–3 CANDLES) -->
+        <div class="section-block">
+          <div class="section-title">Direção prevista (curto prazo · 1–3 candles)</div>
+
+          <div class="direction-main">
+            <div class="direction-circle ${dirClass}">
+              ${dirArrow}
+            </div>
+            <div class="direction-label-block">
+              <div class="direction-title">Direção prevista</div>
+              <div class="direction-label">${dirLabel}</div>
+              <div class="direction-sub">
+                Janela: ${fc.tempo_estimado || '—'} • Preço alvo: ${fmtNum(fc.preco_alvo)}
+              </div>
+            </div>
+          </div>
+
+          <div class="prob-wrapper">
+            <div class="prob-text-row">
+              <span>Convicção da IA (curto prazo)</span>
+              <span>${probClamp}%</span>
+            </div>
+            <div class="prob-bar-bg">
+              <div class="prob-bar-fill" style="width: ${probClamp}%;"></div>
+            </div>
+          </div>
+
+          <div class="direction-note">
+            ${dirTexto}
+          </div>
+        </div>
+
+        <!-- COMANDO FINAL DE EXECUÇÃO -->
+        <div class="section-block">
+          <div class="section-title">Ordem final / execução</div>
+          <div class="execution-card">
+            <div class="execution-header-line">
+              <div class="execution-title">Comando de execução</div>
+              <div class="exec-label ${execClass}">${execLabel}</div>
+            </div>
+            <div class="execution-sub">
+              Leitura combinada de forecast, memória A8/A9, sinais e pullback atual.
+            </div>
+
+            <div class="execution-bars">
+              <div>
+                <div class="execution-bar-row">
+                  <span>A favor da operação</span>
+                  <span>${favorScore}%</span>
+                </div>
+                <div class="execution-bar-bg">
+                  <div class="execution-bar-fill-favor"></div>
+                </div>
+              </div>
+              <div>
+                <div class="execution-bar-row">
+                  <span>Contra a operação</span>
+                  <span>${contraScore}%</span>
+                </div>
+                <div class="execution-bar-bg">
+                  <div class="execution-bar-fill-contra"></div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="execution-footer-title">Comentário rápido da IA</div>
+              <div class="execution-footer-text">
+                ${execContext}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ESTRUTURA RECENTE -->
+        <div class="section-block">
+          <div class="section-title">Estrutura recente</div>
+          <div class="micro-structure-row">
+            <div class="micro-pill">
+              <span class="micro-pill-label">HH</span>
+              <span>${est.hh ? 'ativo' : 'off'}</span>
+              <span class="micro-pill-dot ${est.hh ? 'on-up' : ''}"></span>
+            </div>
+            <div class="micro-pill">
+              <span class="micro-pill-label">HL</span>
+              <span>${est.hl ? 'ativo' : 'off'}</span>
+              <span class="micro-pill-dot ${est.hl ? 'on-up' : ''}"></span>
+            </div>
+          </div>
+          <div class="micro-structure-row" style="margin-top:6px;">
+            <div class="micro-pill">
+              <span class="micro-pill-label">LH</span>
+              <span>${est.lh ? 'ativo' : 'off'}</span>
+              <span class="micro-pill-dot ${est.lh ? 'on-down' : ''}"></span>
+            </div>
+            <div class="micro-pill">
+              <span class="micro-pill-label">LL</span>
+              <span>${est.ll ? 'ativo' : 'off'}</span>
+              <span class="micro-pill-dot ${est.ll ? 'on-down' : ''}"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CHECKLIST DE PADRÕES -->
+        <div class="section-block">
+          <div class="section-title">Checklist de padrões</div>
+          <div class="patterns-grid">
+            <div class="pattern-card">
+              <div class="pattern-card-header">
+                <span class="pattern-name">Rompimento</span>
+                <span class="pattern-badge ${sinalRomp ? 'on' : 'off'}">${sinalRomp ? 'Ativo' : 'Off'}</span>
+              </div>
+              <div class="pattern-desc">${descRomp}</div>
+            </div>
+
+            <div class="pattern-card">
+              <div class="pattern-card-header">
+                <span class="pattern-name">Reversão</span>
+                <span class="pattern-badge ${sinalRev ? 'on' : 'off'}">${sinalRev ? 'Ativo' : 'Off'}</span>
+              </div>
+              <div class="pattern-desc">${descRev}</div>
+            </div>
+
+            <div class="pattern-card">
+              <div class="pattern-card-header">
+                <span class="pattern-name">Continuação</span>
+                <span class="pattern-badge ${sinalCont ? 'on' : 'off'}">${sinalCont ? 'Ativo' : 'Off'}</span>
+              </div>
+              <div class="pattern-desc">${descCont}</div>
+            </div>
+
+            <div class="pattern-card">
+              <div class="pattern-card-header">
+                <span class="pattern-name">Exaustão</span>
+                <span class="pattern-badge ${sinalExaust ? 'on' : 'off'}">${sinalExaust ? 'Ativo' : 'Off'}</span>
+              </div>
+              <div class="pattern-desc">${descExaust}</div>
+            </div>
+
+            <div class="pattern-card">
+              <div class="pattern-card-header">
+                <span class="pattern-name">Divergência</span>
+                <span class="pattern-badge ${sinalDiv ? 'on' : 'off'}">${sinalDiv ? 'Ativo' : 'Off'}</span>
+              </div>
+              <div class="pattern-desc">${descDiv}</div>
+            </div>
+
+            <div class="pattern-card">
+              <div class="pattern-card-header">
+                <span class="pattern-name">Volume</span>
+                <span class="pattern-badge ${sinalVol ? 'on' : 'off'}">${sinalVol ? 'Anormal' : 'Normal'}</span>
+              </div>
+              <div class="pattern-desc">${descVol}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PATTERN RADAR (INTRADAY + CURTO PRAZO) -->
+        <div class="section-block">
+          <div class="section-title">Pattern Radar (experimental)</div>
+
+          <!-- Padrão intraday (dia inteiro) -->
+          <div class="pattern-radar-card">
+            <div>
+              <div class="pattern-radar-title">Padrão provável (intraday)</div>
+              <div class="pattern-radar-name">${patternName}</div>
+              <div class="pattern-tags">
+                <div class="pattern-tag kind">${patternKind}</div>
+                <div class="pattern-tag ${
+                  patternBias.toLowerCase().includes('bull') ? 'bias-bull' :
+                  patternBias.toLowerCase().includes('bear') ? 'bias-bear' :
+                  'bias-neutral'
+                }">${patternBias}</div>
+              </div>
+              <div class="pattern-radar-note">
+                ${patternNote} <br/>
+                <span style="color:#6b7280;">(Leitura heurística — não é detecção perfeita de padrão.)</span>
+              </div>
+            </div>
+            <div class="pattern-svg-box">
+              ${patternSvgMarkup}
+            </div>
+          </div>
+
+          <!-- Padrão curto prazo (últimas velas) -->
+          <div class="pattern-radar-card">
+            <div>
+              <div class="pattern-radar-title">Padrão provável (curto prazo)</div>
+              <div class="pattern-radar-name">${shortName}</div>
+              <div class="pattern-tags">
+                <div class="pattern-tag kind">${shortKind}</div>
+                <div class="pattern-tag ${
+                  shortBias.toLowerCase().includes('bull') ? 'bias-bull' :
+                  shortBias.toLowerCase().includes('bear') ? 'bias-bear' :
+                  'bias-neutral'
+                }">${shortBias}</div>
+              </div>
+              <div class="pattern-radar-note">
+                ${shortNote} <br/>
+                <span style="color:#6b7280;">(Heurística baseada em ~20–50 candles recentes.)</span>
+              </div>
+            </div>
+            <div class="pattern-svg-box">
+              ${patternSvgMarkupShort}
+            </div>
+          </div>
+        </div>
+
+        <!-- CHECK DE PULLBACK / RESPIRO -->
+        <div class="section-block">
+          <div class="section-title">Check de pullback / respiro</div>
+          <div class="pullback-card">
+            <div class="pullback-grid">
+              <div>
+                <div class="pullback-label">ATR do candle atual</div>
+                <div class="pullback-value">${pbAtr != null ? '$' + fmtNum(pbAtr, 2) : '-'}</div>
+              </div>
+              <div>
+                <div class="pullback-label">Profundidade do pullback</div>
+                <div class="pullback-value">${pbMult != null ? fmtNum(pbMult, 2) + ' × ATR' : '-'}</div>
+              </div>
+              <div>
+                <div class="pullback-label">Tendência</div>
+                <div class="pullback-value">${pbTrend}</div>
+              </div>
+              <div>
+                <div class="pullback-label">Estrutura</div>
+                <div class="pullback-value">${pbStruct}</div>
+              </div>
+            </div>
+
+            <div class="pullback-tags-row">
+              <span class="pattern-tag ${pbBiasCss}">${pbBias}</span>
+              <span class="pattern-tag kind">${pbClass}</span>
+              <span class="pattern-tag">Estrutura quebrada: ${pbBroken ? 'sim' : 'não'}</span>
+              <span class="pattern-tag">Microestrutura: ${pbMicro}</span>
+            </div>
+
+            <div class="pullback-conclusion-box ${isReversalRisk ? 'danger' : ''}">
+              <div class="pullback-conclusion-title">${isReversalRisk ? '❌ Conclusão' : '✅ Conclusão'}</div>
+              <div class="pullback-conclusion-text">${pbConclusionText}</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
 </body>
-</html>
+</html>`;
+
+// Retorna para o Respond to Webhook
+return [
+  {
+    json: { html },
+  },
+];
