@@ -1,44 +1,502 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <title>THE SIX SEATS INVESTMENTS – AARON 9 – AI ULTRA</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AARON 9 – AI ULTRA | The Six Seats Investments</title>
+  <style>
+    :root {
+      --bg: #020617;
+      --bg-panel: #020617;
+      --accent: #22c55e;
+      --accent-soft: rgba(34, 197, 94, 0.12);
+      --danger: #ef4444;
+      --danger-soft: rgba(239, 68, 68, 0.1);
+      --border: rgba(148, 163, 184, 0.24);
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+    }
 
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: radial-gradient(circle at top left, #0f172a 0, #020617 40%, #000 100%);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+    }
+
+    header {
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      backdrop-filter: blur(16px);
+      background: radial-gradient(circle at top left, rgba(34,197,94,0.12), transparent 55%);
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .brand-main {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .tagline {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+    }
+
+    .status-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15,23,42,0.8);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(34,197,94,0.8);
+    }
+
+    main {
+      flex: 1;
+      padding: 18px;
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+    }
+
+    .frame-wrap {
+      width: 100%;
+      max-width: 1720px;
+      aspect-ratio: 16 / 9;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow:
+        0 32px 80px rgba(0,0,0,0.85),
+        0 0 0 1px rgba(15,23,42,0.8);
+      background: radial-gradient(circle at top left, rgba(34,197,94,0.08), #020617 55%, #000 100%);
+      position: relative;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .panel-header {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(15,23,42,0.9);
+      padding-bottom: 6px;
+    }
+
+    .panel-header span {
+      font-size: 11px;
+    }
+
+    .pill-small {
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.3);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+
+    /* GRID PRINCIPAL DO PAINEL */
+    .console-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+      gap: 14px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .block {
+      border-radius: 16px;
+      background: radial-gradient(circle at top left, rgba(15,118,110,0.22), #020617 45%, #020617 100%);
+      border: 1px solid rgba(30,64,175,0.6);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+    }
+
+    .block h2 {
+      margin: 0;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-muted);
+    }
+
+    .block-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .value-big {
+      font-size: 16px;
+      font-weight: 500;
+      margin-top: 4px;
+      color: #e0f2fe;
+    }
+
+    .desc {
+      font-size: 12px;
+      color: var(--text-main);
+      opacity: 0.9;
+    }
+
+    .chips-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .chip {
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.4);
+      font-size: 10px;
+      color: var(--text-muted);
+      background: rgba(15,23,42,0.9);
+    }
+
+    /* TERMÔMETRO RISCO */
+    .thermo-wrap {
+      margin-top: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 11px;
+    }
+
+    .thermo-labels,
+    .thermo-values {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+    }
+
+    .thermo-bar {
+      position: relative;
+      height: 18px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: radial-gradient(circle at 0% 50%, rgba(239,68,68,0.25), transparent 60%),
+                  radial-gradient(circle at 100% 50%, rgba(34,197,94,0.25), transparent 60%),
+                  rgba(15,23,42,0.95);
+      border: 1px solid rgba(30,64,175,0.6);
+      display: flex;
+    }
+
+    .thermo-segment {
+      height: 100%;
+      transition: width 0.4s ease-out;
+    }
+
+    .thermo-contra {
+      background: linear-gradient(to right, var(--danger-soft), var(--danger));
+    }
+
+    .thermo-favor {
+      background: linear-gradient(to right, var(--accent), var(--accent-soft));
+    }
+
+    /* JSON DEBUG */
+    .debug-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .json-box {
+      flex: 1;
+      margin: 0;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: radial-gradient(circle at top left, rgba(34,197,94,0.05), #020617 40%, #020617 100%);
+      border: 1px solid rgba(30,64,175,0.6);
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11px;
+      color: var(--accent);
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .json-box span.muted {
+      color: var(--text-muted);
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .refresh-indicator {
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(148,163,184,0.3);
+    }
+
+    .refresh-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      border: 2px solid rgba(148,163,184,0.7);
+      border-top-color: var(--accent);
+      animation: spin 1.1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
       }
+    }
 
-      html,
-      body {
-        width: 100%;
-        height: 100%;
-        background: #050814; /* mesma cor de fundo do painel */
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-          "SF Pro Display", "Segoe UI", sans-serif;
+    footer {
+      padding: 6px 16px 14px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 1024px) {
+      main {
+        padding: 10px;
       }
-
-      body {
-        overflow: hidden; /* some com barra de rolagem externa, só o painel rola */
+      .frame-wrap {
+        border-radius: 0;
+        max-width: 100%;
+        aspect-ratio: 9 / 16;
       }
-
-      iframe {
-        border: none;
-        width: 100vw;
-        height: 100vh;
-        display: block;
+      header {
+        padding-inline: 14px;
       }
-    </style>
-  </head>
+      .console-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-title">THE SIX SEATS INVESTMENTS</div>
+      <div class="brand-main">AARON 9 – AI ULTRA</div>
+      <div class="tagline">Radar de dire&ccedil;&atilde;o • Console inteligente • Painel de risco din&acirc;mico</div>
+    </div>
+    <div>
+      <span class="status-pill">
+        <span class="status-dot"></span>
+        Conectado ao painel JSON (auto-update)
+      </span>
+    </div>
+  </header>
 
-  <body>
-    <!-- AQUI VAI O LINK DO SEU PAINEL NO N8N -->
-    <iframe
-      src="https://jjjnogueira.app.n8n.cloud/webhook/aaron8-view"
-      loading="lazy"
-    ></iframe>
-  </body>
+  <main>
+    <div class="frame-wrap">
+      <div class="panel-header">
+        <div>
+          CONSOLE AARON 9
+          <span>espelho do painel AARON 8 / n8n</span>
+        </div>
+        <div class="pill-small" id="last-update">Carregando&hellip;</div>
+      </div>
+
+      <!-- GRID PRINCIPAL -->
+      <div class="console-grid">
+        <!-- BLOCO ESQUERDA: DIREÇÃO GERAL -->
+        <section class="block">
+          <div class="block-subtitle">VISÃO GERAL DO DIA</div>
+          <div id="dir-geral" class="value-big">Aguardando dados...</div>
+          <p id="coment-dia" class="desc">
+            Assim que o AARON atualizar o panel.json, o resumo automático do dia aparece aqui.
+          </p>
+
+          <div class="chips-row">
+            <span class="chip" id="chip-ativo">Ativo: —</span>
+            <span class="chip" id="chip-timeframe">Timeframe: —</span>
+          </div>
+        </section>
+
+        <!-- BLOCO DIREITA: TERMÔMETRO DE RISCO -->
+        <section class="block">
+          <div class="block-subtitle">RISCO / FLUXO EMOCIONAL</div>
+          <p id="risco-modo" class="desc">Modo de risco: —</p>
+
+          <div class="thermo-wrap">
+            <div class="thermo-labels">
+              <span>Contra</span>
+              <span>A favor</span>
+            </div>
+            <div class="thermo-bar">
+              <div class="thermo-segment thermo-contra" id="bar-contra" style="width: 50%;"></div>
+              <div class="thermo-segment thermo-favor" id="bar-favor" style="width: 50%;"></div>
+            </div>
+            <div class="thermo-values">
+              <span id="val-contra">50%</span>
+              <span id="val-favor">50%</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- JSON DEBUG -->
+      <div class="debug-label">JSON bruto do painel (debug)</div>
+      <pre id="json-output" class="json-box">
+<span class="muted">// Carregando dados do AARON em tempo real...</span>
+      </pre>
+
+      <div class="meta-row">
+        <span id="meta-status">Status: aguardando primeira leitura do panel.json</span>
+        <span class="refresh-indicator">
+          <span class="refresh-dot"></span>
+          Atualiza&ccedil;&atilde;o autom&aacute;tica
+        </span>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    AARON 9 – Painel estrat&eacute;gico em cima do AARON 8 ULTRA • Constru&iacute;do com n8n, ChatGPT, GitHub e Vercel
+  </footer>
+
+  <script>
+    // URL pública do panel.json no GitHub (atualizado pelo n8n)
+    const JSON_URL = "https://raw.githubusercontent.com/jeffersonnogueira/Aaron8-Panel/refs/heads/main/panel.json";
+
+    // Intervalo de atualização em milissegundos
+    const REFRESH_MS = 15000; // 15 segundos (pode ajustar depois)
+
+    const jsonOutput = document.getElementById("json-output");
+    const lastUpdate = document.getElementById("last-update");
+    const metaStatus = document.getElementById("meta-status");
+
+    // elementos do painel visual
+    const dirGeralEl = document.getElementById("dir-geral");
+    const comentDiaEl = document.getElementById("coment-dia");
+    const chipAtivoEl = document.getElementById("chip-ativo");
+    const chipTimeframeEl = document.getElementById("chip-timeframe");
+    const riscoModoEl = document.getElementById("risco-modo");
+    const barFavorEl = document.getElementById("bar-favor");
+    const barContraEl = document.getElementById("bar-contra");
+    const valFavorEl = document.getElementById("val-favor");
+    const valContraEl = document.getElementById("val-contra");
+
+    function renderPanel(data) {
+      const ativo = data.ativo || "—";
+      const timeframe = data.timeframe || "—";
+      const direcaoGeral = data.direcao_geral || "Sem dire&ccedil;&atilde;o dominante definida ainda.";
+      const comentarioDia = data.comentario_dia || "";
+
+      const risco = data.risco || {};
+      const modo = risco.modo || "—";
+      const scoreFavor = typeof risco.score_favor === "number" ? risco.score_favor : 0;
+      const scoreContra = typeof risco.score_contra === "number" ? risco.score_contra : 0;
+      const total = scoreFavor + scoreContra;
+
+      const favorPct = total > 0 ? Math.round((scoreFavor / total) * 100) : 0;
+      const contraPct = total > 0 ? 100 - favorPct : 0;
+
+      dirGeralEl.textContent = direcaoGeral;
+      comentDiaEl.textContent = comentarioDia || "O AARON ainda n&atilde;o gerou um resumo textual para este candle.";
+      chipAtivoEl.textContent = "Ativo: " + ativo;
+      chipTimeframeEl.textContent = "Timeframe: " + timeframe;
+      riscoModoEl.textContent = "Modo de risco: " + modo;
+
+      barFavorEl.style.width = favorPct + "%";
+      barContraEl.style.width = contraPct + "%";
+      valFavorEl.textContent = favorPct + "%";
+      valContraEl.textContent = contraPct + "%";
+    }
+
+    async function fetchPanel() {
+      try {
+        metaStatus.textContent = "Status: atualizando painel…";
+
+        const res = await fetch(JSON_URL + "?ts=" + Date.now());
+        if (!res.ok) {
+          throw new Error("HTTP " + res.status);
+        }
+
+        const data = await res.json();
+
+        // mostra JSON bruto
+        jsonOutput.textContent = JSON.stringify(data, null, 2);
+
+        // atualiza painel bonito
+        renderPanel(data);
+
+        lastUpdate.textContent = "Última atualização: " + new Date().toLocaleTimeString();
+        metaStatus.textContent = "Status: painel sincronizado com o AARON 8 (n8n → GitHub → Vercel)";
+      } catch (err) {
+        jsonOutput.textContent = "// Erro ao carregar panel.json: " + err.message;
+        metaStatus.textContent = "Status: erro ao buscar panel.json – verifique o fluxo do n8n";
+      }
+    }
+
+    // primeira chamada
+    fetchPanel();
+    // atualizações periódicas
+    setInterval(fetchPanel, REFRESH_MS);
+  </script>
+</body>
 </html>
