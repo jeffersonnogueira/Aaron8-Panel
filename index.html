@@ -108,21 +108,69 @@
         0 0 0 1px rgba(15,23,42,0.8);
       background: radial-gradient(circle at top left, rgba(34,197,94,0.08), #020617 55%, #000 100%);
       position: relative;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      background: transparent;
+    .panel-header {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(15,23,42,0.9);
+      padding-bottom: 6px;
+    }
+
+    .panel-header span {
+      font-size: 11px;
+    }
+
+    .pill-small {
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.3);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+
+    .json-box {
+      flex: 1;
+      margin: 0;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: radial-gradient(circle at top left, rgba(34,197,94,0.05), #020617 40%, #020617 100%);
+      border: 1px solid rgba(30,64,175,0.6);
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11px;
+      color: var(--accent);
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .json-box span.muted {
+      color: var(--text-muted);
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .refresh-indicator {
-      position: absolute;
-      right: 16px;
-      bottom: 14px;
       font-size: 11px;
-      color: var(--text-muted);
       display: inline-flex;
       align-items: center;
       gap: 6px;
@@ -179,44 +227,74 @@
     <div>
       <span class="status-pill">
         <span class="status-dot"></span>
-        Painel conectado ao AARON 8 / n8n (auto-update)
+        Conectado ao painel JSON (auto-update)
       </span>
     </div>
   </header>
 
   <main>
     <div class="frame-wrap">
-      <!-- AQUI VAI O PAINEL DO N8N -->
-      <iframe
-        id="aaron-frame"
-        src="https://jjjnogueira.app.n8n.cloud/webhook/aaron8view"
-        loading="lazy"
-      ></iframe>
+      <div class="panel-header">
+        <div>
+          CONSOLE AARON 9
+          <span>espelho do painel AARON 8 / n8n</span>
+        </div>
+        <div class="pill-small" id="last-update">Carregando&hellip;</div>
+      </div>
 
-      <div class="refresh-indicator">
-        <span class="refresh-dot"></span>
-        Atualiza&ccedil;&atilde;o autom&aacute;tica em tempo real
+      <pre id="json-output" class="json-box">
+<span class="muted">// Carregando dados do AARON em tempo real...</span>
+      </pre>
+
+      <div class="meta-row">
+        <span id="meta-status">Status: aguardando primeira leitura do panel.json</span>
+        <span class="refresh-indicator">
+          <span class="refresh-dot"></span>
+          Atualiza&ccedil;&atilde;o autom&aacute;tica
+        </span>
       </div>
     </div>
   </main>
 
   <footer>
-    AARON 9 – Painel estrat&eacute;gico em cima do AARON 8 ULTRA • Constru&iacute;do com n8n, ChatGPT e Vercel
+    AARON 9 – Painel estrat&eacute;gico em cima do AARON 8 ULTRA • Constru&iacute;do com n8n, ChatGPT, GitHub e Vercel
   </footer>
 
   <script>
-    // Intervalo de atualização (em milissegundos)
-    const REFRESH_MS = 15000; // 15 segundos – pode ajustar depois se quiser
+    // URL pública do panel.json no GitHub (atualizado pelo n8n)
+    const JSON_URL = "https://raw.githubusercontent.com/jeffersonnogueira/Aaron8-Panel/refs/heads/main/panel.json";
 
-    const frame = document.getElementById("aaron-frame");
-    const baseSrc = frame.src.split("?")[0];
+    // Intervalo de atualização em milissegundos
+    const REFRESH_MS = 15000; // 15 segundos (pode ajustar depois)
 
-    function reloadFrame() {
-      frame.src = baseSrc + "?ts=" + Date.now();
+    const jsonOutput = document.getElementById("json-output");
+    const lastUpdate = document.getElementById("last-update");
+    const metaStatus = document.getElementById("meta-status");
+
+    async function fetchPanel() {
+      try {
+        metaStatus.textContent = "Status: atualizando painel…";
+
+        const res = await fetch(JSON_URL + "?ts=" + Date.now());
+        if (!res.ok) {
+          throw new Error("HTTP " + res.status);
+        }
+
+        const data = await res.json();
+
+        jsonOutput.textContent = JSON.stringify(data, null, 2);
+        lastUpdate.textContent = "Última atualização: " + new Date().toLocaleTimeString();
+        metaStatus.textContent = "Status: painel sincronizado com o AARON 8 (n8n → GitHub → Vercel)";
+      } catch (err) {
+        jsonOutput.textContent = "// Erro ao carregar panel.json: " + err.message;
+        metaStatus.textContent = "Status: erro ao buscar panel.json – verifique o fluxo do n8n";
+      }
     }
 
-    // Atualiza o painel automaticamente de tempos em tempos
-    setInterval(reloadFrame, REFRESH_MS);
+    // primeira chamada
+    fetchPanel();
+    // atualizações periódicas
+    setInterval(fetchPanel, REFRESH_MS);
   </script>
 </body>
 </html>
