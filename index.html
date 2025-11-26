@@ -416,12 +416,7 @@
   </div>
 
   <script>
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    // TROCAR ESSA URL PELA URL REAL DO SEU panel.json NO GITHUB
-    // Exemplo:
-    // const PANEL_URL = "https://raw.githubusercontent.com/SEU_USUARIO/SEU_REPO/main/panel.json";
     const PANEL_URL = "https://raw.githubusercontent.com/jeffersonnogueira/Aaron8-Panel/main/panel.json";
-    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     const $ = (id) => document.getElementById(id);
 
@@ -440,28 +435,32 @@
     function handlePanel(panel) {
       if (!panel || typeof panel !== "object") return;
 
-      const status = panel.status || {};
-      const exec = panel.exec || panel.execution || {};
-      const pull = panel.pullback || panel.respiro || {};
-      const fShort = panel.forecastShort || panel.forecast_short || {};
-      const fMacro = panel.forecastMacro || panel.forecast_macro || {};
+      const statusObj =
+        typeof panel.status === "object" && panel.status !== null ? panel.status : {};
 
       // HEADER / STATUS
       const symbolLabel =
-        (status.symbol || status.ticker || "").toString().toUpperCase() || "—";
-      const tfLabel = status.timeframe || status.tf || "—";
-      const edgeLabel = status.edge || status.edgeText || exec.edge || "—";
+        (panel.ativo || statusObj.symbol || statusObj.ticker || "")
+          .toString()
+          .toUpperCase() || "—";
+
+      const tfLabel = panel.timeframe || statusObj.timeframe || statusObj.tf || "—";
+
+      const edgeLabel = panel.edge || statusObj.edge || panel.status || "—";
+
       const dirLabel =
-        status.direction || status.side || status.bias || exec.side || "—";
+        panel.direcao_geral || statusObj.direction || statusObj.side || "—";
 
       setText("header-symbol", symbolLabel);
       setText("badge-timeframe", tfLabel);
       setText("badge-edge", edgeLabel);
       setText("badge-direction", dirLabel);
 
-      // EXECUÇÃO
-      const canBuy =
-        exec.canBuy ?? exec.executar ?? exec.ok ?? exec.allow ?? null;
+      // EXECUÇÃO + RISCO
+      const exec = panel.exec || panel.execution || {};
+      const risco = panel.risco || {};
+
+      const canBuy = exec.canBuy ?? exec.executar ?? exec.ok ?? null;
 
       const execMain =
         exec.main ||
@@ -470,12 +469,13 @@
           ? "EXECUTAR COMPRA"
           : canBuy === false
           ? "NÃO EXECUTAR · ESPERAR"
-          : "Aguardando alinhamento…");
+          : "Aguardando dados do AARON 9…");
 
       const execReason =
         exec.reason ||
         exec.comment ||
         exec.motivo ||
+        risco.modo ||
         "Quando o fluxo, estrutura e risco alinham, o AARON libera a execução aqui.";
 
       setText("exec-main", execMain);
@@ -489,26 +489,28 @@
           : "Em observação"
       );
 
-      const favor = exec.thermoFavor ?? exec.favor ?? 0;
-      const contra = exec.thermoContra ?? exec.contra ?? (100 - favor);
+      const favor = exec.thermoFavor ?? exec.favor ?? risco.score_favor ?? 0;
+      const contra =
+        exec.thermoContra ?? exec.contra ?? risco.score_contra ?? (100 - favor);
 
       setThermo($("thermo-favor"), favor);
       setThermo($("thermo-contra"), contra);
-      setText("thermo-favor-label", `${Math.round(favor)}%`);
-      setText("thermo-contra-label", `${Math.round(contra)}%`);
+      setText("thermo-favor-label", Math.round(favor) + "%");
+      setText("thermo-contra-label", Math.round(contra) + "%");
 
-      // PULLBACK / RESPIRO
+      // PULLBACK / RESPIRO (quando você começar a mandar no JSON, ele aparece aqui)
+      const pull = panel.pullback || panel.respiro || {};
+
       const pullMain =
         pull.main ||
         pull.title ||
         pull.conclusion ||
         pull.conclusao ||
         "—";
+
       const pullSub =
         pull.comment ||
-        pull.commentary ||
-        pull.explication ||
-        pull.exp ||
+        pull.comentario ||
         pull.desc ||
         pull.descricao ||
         "—";
@@ -563,7 +565,8 @@
         });
       }
 
-      // FORECAST CURTO
+      // FORECAST CURTO (preparado para quando você mandar forecastShort no JSON)
+      const fShort = panel.forecastShort || panel.forecast_short || {};
       const fShortMain =
         fShort.main ||
         fShort.direction ||
@@ -579,7 +582,8 @@
         fShort.horizon || fShort.horizonte || "1–3 candles"
       );
 
-      // FORECAST MACRO
+      // FORECAST MACRO (preparado para quando você mandar forecastMacro)
+      const fMacro = panel.forecastMacro || panel.forecast_macro || {};
       const fMacroMain =
         fMacro.main ||
         fMacro.direction ||
@@ -611,21 +615,24 @@
         const panel = await res.json();
         handlePanel(panel);
 
-        const now = new Date();
-        setText(
-          "badge-updated",
-          now.toLocaleTimeString("pt-BR", { hour12: false })
-        );
         const dot = $("status-dot");
         if (dot) dot.classList.add("ok");
-        setText("status-text", "Conectado ao painel · JSON recebido com sucesso.");
 
-        if (panel.serverTime || panel.timestamp) {
-          setText(
-            "status-server-time",
-            "Server / painel: " + (panel.serverTime || panel.timestamp)
-          );
+        const updated =
+          panel.ultima_atualizacao || panel.serverTime || panel.timestamp;
+
+        if (updated) {
+          setText("badge-updated", updated);
+          setText("status-server-time", "Server / painel: " + updated);
+        } else {
+          const now = new Date().toLocaleTimeString("pt-BR", { hour12: false });
+          setText("badge-updated", now);
         }
+
+        setText(
+          "status-text",
+          "Conectado ao painel · JSON recebido com sucesso."
+        );
       } catch (err) {
         console.error("Erro ao buscar painel:", err);
         const dot = $("status-dot");
@@ -637,7 +644,6 @@
       }
     }
 
-    // Primeira carga + atualizações a cada 3 segundos
     fetchPanel();
     setInterval(fetchPanel, 3000);
   </script>
