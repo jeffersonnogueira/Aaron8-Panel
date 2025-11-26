@@ -1,0 +1,14 @@
+{
+  "status": "ok",
+  "versao": "AARON 9 - Painel Web",
+  "ativo": "NVDA",
+  "timeframe": "1m",
+  "direcao_geral": "Neutra a levemente altista",
+  "comentario_dia": "Fluxo misto, sem direcao dominante clara ainda.",
+  "risco": {
+    "modo": "Misto (scalp + intraday)",
+    "score_favor": 58,
+    "score_contra": 42
+  },
+  "ultima_atualizacao": "2025-11-26T11:40:00-07:00"
+}
